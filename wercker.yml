@@ -4,6 +4,11 @@ build:
     - setup-go-workspace
 
     - script:
+        name: get dependencies
+        code: |
+          go get github.com/golang/lint/golint
+
+    - script:
         name: go build
         code: |
           go build ./...
@@ -22,3 +27,8 @@ build:
         name: go test
         code: |
           go test -race ./...
+
+    - script:
+        name: golint
+        code: |
+          golint .
