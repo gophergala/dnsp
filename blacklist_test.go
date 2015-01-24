@@ -9,17 +9,20 @@ import (
 func TestIsAllowed(t *testing.T) {
 	t.Parallel()
 
-	for host, blocked := range map[string]bool{
-		"example.com.": false,
-		"blocked.net.": true,
-	} {
-		s := dnsp.NewServer(dnsp.Options{})
-		if blocked {
-			s.Block(host)
-		}
+	s := dnsp.NewServer(dnsp.Options{
+		White: true,
+	})
+	s.Whitelist("google.com")
+	s.Whitelist("github.com")
 
-		if act := s.IsAllowed(host); blocked != act {
-			t.Errorf("expected s.IsAllowed(%q) to be %v, got %v", host, blocked, act)
+	for host, ok := range map[string]bool{
+		"blocked.net.": false,
+		"example.com.": false,
+		"github.com.":  true,
+		"google.com.":  true,
+	} {
+		if act := s.IsAllowed(host); ok != act {
+			t.Errorf("expected s.IsAllowed(%q) to be %v, got %v", host, ok, act)
 		}
 	}
 }

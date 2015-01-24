@@ -20,7 +20,7 @@ type Server struct {
 	white bool
 
 	// Hosts is a combined whitelist/blacklist. It contains both whitelist and blacklist entries.
-	hosts map[string]block
+	hosts map[string]listType
 }
 
 // NewServer creates a new Server with the given options.
@@ -34,7 +34,8 @@ func NewServer(o Options) *Server {
 			Net:  "udp",
 			Addr: o.Bind,
 		},
-		hosts: map[string]block{},
+		white: o.White,
+		hosts: map[string]listType{},
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		// If no upstream proxy is present, drop the query:

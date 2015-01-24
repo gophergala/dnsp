@@ -3,24 +3,24 @@ package dnsp
 import "github.com/miekg/dns"
 
 const (
-	Unknown block = iota
-	Allowed       // whitelisted
-	Blocked       // blacklisted
+	Unknown listType = iota
+	White            // whitelisted
+	Black            // blacklisted
 )
 
-type block uint8
+type listType uint8
 
-// Allow whitelists a hosts.
-func (s *Server) Allow(host string) {
-	setHost(s.hosts, host, Allowed)
+// Whitelist whitelists a hosts.
+func (s *Server) Whitelist(host string) {
+	setHost(s.hosts, host, White)
 }
 
-// Block blacklists a host.
-func (s *Server) Block(host string) {
-	setHost(s.hosts, host, Blocked)
+// Blacklist blacklists a host.
+func (s *Server) Blacklist(host string) {
+	setHost(s.hosts, host, Black)
 }
 
-func setHost(hosts map[string]block, host string, b block) {
+func setHost(hosts map[string]listType, host string, b listType) {
 	if host == "" {
 		return
 	}
@@ -30,10 +30,18 @@ func setHost(hosts map[string]block, host string, b block) {
 	hosts[host] = b
 }
 
-// IsBlocked returns whether a hostname is blocked.
+// IsAllowed returns whether we are allowed to resolve this host.
+//
+// If the server is whitelisting, the rusilt will be true if the host is on the whitelist.
+// If the server is blacklisting, the result will be true if the host is NOT on the blacklist.
+//
+// NOTE: "host" must end with a dot.
 func (s *Server) IsAllowed(host string) bool {
 	b := s.hosts[host]
-	return s.white && b == Allowed || b != Blocked
+	if s.white {
+		return b == White
+	}
+	return b != Black
 }
 
 func (s *Server) filter(qs []dns.Question) []dns.Question {
