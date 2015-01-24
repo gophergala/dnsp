@@ -9,6 +9,8 @@ import (
 // Server implements a DNS server.
 type Server struct {
 	conn *net.UDPConn
+
+	blacklist map[string]bool
 }
 
 // NewServer creates a new Server with the given options.
@@ -24,7 +26,8 @@ func NewServer(o Options) (*Server, error) {
 	}
 
 	return &Server{
-		conn: conn,
+		conn:      conn,
+		blacklist: map[string]bool{},
 	}, nil
 }
 
