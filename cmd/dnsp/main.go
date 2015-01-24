@@ -16,6 +16,7 @@ func main() {
 	o := dnsp.Options{}
 	flag.StringVar(&o.Bind, "bind", ":53", "address to bind to")
 	flag.StringVar(&o.Server, "server", "8.8.8.8", "address to proxy to")
+	flag.BoolVar(&o.White, "white", false, "use a whitelist")
 	flag.Parse()
 
 	s := dnsp.NewServer(o)
