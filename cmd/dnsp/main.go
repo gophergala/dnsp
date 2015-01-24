@@ -35,7 +35,7 @@ func main() {
 		return 0
 	}, syscall.SIGINT, syscall.SIGTERM)
 
-	log.Printf("Starting DNS proxy on %s…", s.Addr)
+	log.Printf("Starting DNS proxy on %s…", s.Addr())
 	if err = s.Start(); err != nil {
 		log.Fatal(err)
 	}

@@ -5,7 +5,6 @@ import "net"
 
 // Server implements a DNS server.
 type Server struct {
-	Addr *net.UDPAddr
 	conn *net.UDPConn
 }
 
@@ -22,7 +21,6 @@ func NewServer(o Options) (*Server, error) {
 	}
 
 	return &Server{
-		Addr: addr,
 		conn: conn,
 	}, nil
 }
@@ -35,4 +33,8 @@ func (s *Server) Start() error {
 // Stop stops the server, closing any kernel buffers.
 func (s *Server) Stop() error {
 	return s.conn.Close()
+}
+
+func (s *Server) Addr() net.Addr {
+	return s.conn.LocalAddr()
 }
