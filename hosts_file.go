@@ -14,7 +14,7 @@ func (h *HostEntry) String() string {
 	return fmt.Sprintf("%v @ %v", h.Host, h.IP)
 }
 
-func ParseHostLine(line string) HostEntry {
+func ParseHostLine(line string) *HostEntry {
 	result := HostEntry{}
 
 	if len(line) > 0 {
@@ -27,5 +27,5 @@ func ParseHostLine(line string) HostEntry {
 		}
 	}
 
-	return result
+	return &result
 }
