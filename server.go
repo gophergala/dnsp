@@ -28,7 +28,6 @@ func NewServer(o Options) (*Server, error) {
 // Start runs the server
 func (s *Server) Start() error {
 	select {} // TODO
-	return nil
 }
 
 // Stop stops the server, closing any kernel buffers.

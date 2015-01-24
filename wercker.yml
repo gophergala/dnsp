@@ -14,6 +14,11 @@ build:
           go install ./...
 
     - script:
+        name: go vet
+        code: |
+          go vet ./...
+
+    - script:
         name: go test
         code: |
           go test -race ./...
