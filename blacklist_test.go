@@ -6,21 +6,20 @@ import (
 	"github.com/gophergala/dnsp"
 )
 
-func TestIsBlocked(t *testing.T) {
+func TestIsAllowed(t *testing.T) {
 	t.Parallel()
-
-	s := dnsp.NewServer(dnsp.Options{})
 
 	for host, blocked := range map[string]bool{
 		"example.com.": false,
 		"blocked.net.": true,
 	} {
+		s := dnsp.NewServer(dnsp.Options{})
 		if blocked {
 			s.Block(host)
 		}
 
-		if act := s.IsBlocked(host); blocked != act {
-			t.Errorf("expected s.IsBlocked(%q) to be %v, got %v", host, blocked, act)
+		if act := s.IsAllowed(host); blocked != act {
+			t.Errorf("expected s.IsAllowed(%q) to be %v, got %v", host, blocked, act)
 		}
 	}
 }
