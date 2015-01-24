@@ -24,7 +24,9 @@ func TestNewServer(t *testing.T) {
 			}
 			if s == nil {
 				t.Errorf("expected a %T, got nil", s)
+				continue
 			}
+			s.Stop()
 		} else {
 			if err == nil {
 				t.Error("expected an error, got nil")
