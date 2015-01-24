@@ -5,6 +5,7 @@ import "net"
 
 // Server implements a DNS server.
 type Server struct {
+	Addr *net.UDPAddr
 	conn *net.UDPConn
 }
 
@@ -21,6 +22,7 @@ func NewServer(o Options) (*Server, error) {
 	}
 
 	return &Server{
+		Addr: addr,
 		conn: conn,
 	}, nil
 }

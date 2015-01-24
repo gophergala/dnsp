@@ -26,6 +26,9 @@ func TestNewServer(t *testing.T) {
 				t.Errorf("expected a %T, got nil", s)
 				continue
 			}
+			if s.Addr == nil {
+				t.Errorf("expected a %T, got nil", s.Addr)
+			}
 			s.Stop()
 		} else {
 			if err == nil {
