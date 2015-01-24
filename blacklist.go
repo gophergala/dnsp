@@ -1,12 +1,6 @@
 package dnsp
 
-import (
-	"crypto/md5"
-
-	"github.com/miekg/dns"
-)
-
-type blacklist [][md5.Size]byte
+import "github.com/miekg/dns"
 
 func (s *Server) Block(host string) {
 	if host == "" {
@@ -17,7 +11,7 @@ func (s *Server) Block(host string) {
 	}
 
 	if !s.IsHostBlocked(host) { // avoid duplicates
-		s.blacklist = append(s.blacklist, md5.Sum([]byte(host)))
+		s.blacklist[host] = true
 	}
 }
 
@@ -32,6 +26,8 @@ func (s *Server) IsBlocked(msg *dns.Msg) []bool {
 
 // IsHostBlocked returns true if a hostname is blocked.
 func (s *Server) IsHostBlocked(host string) bool {
-	// TODO: consult the local block list.
-	return host == "blocked.net."
+	if s.blacklist[host] {
+		return true
+	}
+	return false
 }

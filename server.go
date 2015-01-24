@@ -10,7 +10,7 @@ import (
 type Server struct {
 	conn *net.UDPConn
 
-	blacklist blacklist
+	blacklist map[string]bool
 }
 
 // NewServer creates a new Server with the given options.
@@ -27,7 +27,7 @@ func NewServer(o Options) (*Server, error) {
 
 	return &Server{
 		conn:      conn,
-		blacklist: make(blacklist, 0),
+		blacklist: map[string]bool{},
 	}, nil
 }
 
