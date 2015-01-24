@@ -15,28 +15,20 @@ var version = "0.0"
 func main() {
 	o := dnsp.Options{}
 	flag.StringVar(&o.Bind, "bind", ":53", "address to bind to")
+	flag.StringVar(&o.Server, "server", "8.8.8.8", "address to proxy to")
 	flag.Parse()
 
-	s, err := dnsp.NewServer(o)
-	if err != nil {
-		log.Fatal(err)
-	}
+	s := dnsp.NewServer(o)
 
-	stopServer := func() {
-		if err := s.Stop(); err != nil {
-			log.Fatal(err)
-		}
-	}
-	defer stopServer() // in case of normal exit
-
-	catch(func(s os.Signal) int {
-		log.Printf("Stopping DNS proxy…")
-		stopServer()
+	catch(func(sig os.Signal) int {
+		log.Printf("debug=dnsp_shutdown signal=%s", sig)
+		s.Shutdown()
 		return 0
 	}, syscall.SIGINT, syscall.SIGTERM)
+	defer s.Shutdown() // in case of normal exit
 
-	log.Printf("Starting DNS proxy on %s…", s.Addr())
-	if err = s.Start(); err != nil {
+	log.Printf("debug=dnsp_start bind=%s server=%s", o.Bind, o.Server)
+	if err := s.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

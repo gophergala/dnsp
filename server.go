@@ -3,52 +3,67 @@ package dnsp
 
 import (
 	"log"
-	"net"
+	"strings"
+
+	"github.com/miekg/dns"
 )
 
 // Server implements a DNS server.
 type Server struct {
-	conn *net.UDPConn
+	c *dns.Client
+	s *dns.Server
 
+	upstream  string
 	blacklist map[string]bool
 }
 
 // NewServer creates a new Server with the given options.
-func NewServer(o Options) (*Server, error) {
-	addr, err := net.ResolveUDPAddr("udp", o.Bind)
-	if err != nil {
-		return nil, err
+func NewServer(o Options) *Server {
+	if o.Server != "" && !strings.Contains(o.Server, ":") {
+		o.Server += ":53"
 	}
-
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Server{
-		conn:      conn,
+	s := Server{
+		c: &dns.Client{},
+		s: &dns.Server{
+			Net:  "udp",
+			Addr: o.Bind,
+		},
+		upstream:  o.Server,
 		blacklist: map[string]bool{},
-	}, nil
-}
-
-// Start runs the server
-func (s *Server) Start() error {
-	for {
-		b, oob := make([]byte, 1024), make([]byte, 64)
-		n, oobn, flags, addr, err := s.conn.ReadMsgUDP(b, oob)
-		if err != nil {
-			log.Printf("error=conn_read_msg details=%q", err)
-			continue
-		}
-		log.Printf("debug=read flags=%d addr=%s b=%q oob=%q", flags, addr, b[:n], oob[:oobn])
 	}
+	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
+		// If no upstream proxy is present, drop the query:
+		if o.Server == "" {
+			dns.HandleFailed(w, r)
+			return
+		}
+
+		// Filter Questions:
+		if r.Question = s.filter(r.Question); len(r.Question) == 0 {
+			w.WriteMsg(r)
+			return
+		}
+
+		// Proxy Query:
+		in, rtt, err := s.c.Exchange(r, o.Server)
+		if err != nil {
+			log.Printf("error=exchange_failed details=%q", err)
+			dns.HandleFailed(w, r)
+			return
+		}
+		log.Printf("debug=exchange_ok rtt=%s", rtt)
+		w.WriteMsg(in)
+
+	})
+	return &s
 }
 
-// Stop stops the server, closing any kernel buffers.
-func (s *Server) Stop() error {
-	return s.conn.Close()
+// ListenAndServe runs the server
+func (s *Server) ListenAndServe() error {
+	return s.s.ListenAndServe()
 }
 
-func (s *Server) Addr() net.Addr {
-	return s.conn.LocalAddr()
+// Shutdown stops the server, closing any kernel buffers.
+func (s *Server) Shutdown() error {
+	return s.s.Shutdown()
 }
