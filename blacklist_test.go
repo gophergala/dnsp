@@ -21,6 +21,10 @@ func TestIsBlocked(t *testing.T) {
 		"example.com.": false,
 		"blocked.net.": true,
 	} {
+		if blocked {
+			s.Block(host)
+		}
+
 		if act := s.IsHostBlocked(host); blocked != act {
 			t.Errorf("expected s.IsHostBlocked(%q) to be %v, got %v", host, blocked, act)
 		}
