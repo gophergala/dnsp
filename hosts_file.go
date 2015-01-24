@@ -17,12 +17,14 @@ func (h *HostEntry) String() string {
 func ParseHostLine(line string) HostEntry {
 	result := HostEntry{}
 
-	parts := strings.Split(strings.TrimLeft(line, " "), " ")
+	if len(line) > 0 {
+		parts := strings.Fields(line)
 
-	// TODO: More validation might be smart
-	if parts[0] != "#" && len(parts) >= 2 {
-		result.IP = parts[0]
-		result.Host = parts[1]
+		// TODO: More validation might be smart
+		if parts[0] != "#" && len(parts) >= 2 {
+			result.IP = parts[0]
+			result.Host = parts[1]
+		}
 	}
 
 	return result

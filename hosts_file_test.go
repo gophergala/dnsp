@@ -15,6 +15,8 @@ func TestParseHostLine(t *testing.T) {
 		host string
 	}{
 		{"127.0.0.1 ---.chine-li.info", "127.0.0.1", "---.chine-li.info"},
+		{"127.0.0.1  ---.chine-li.info  ", "127.0.0.1", "---.chine-li.info"},
+		{"127.0.0.1\t\t---.chine-li.info", "127.0.0.1", "---.chine-li.info"},
 		{"127.0.0.1 localhost # IPv4", "127.0.0.1", "localhost"},
 		{"# Comment line", "", ""},
 		{" # Comment with a space at the beginning", "", ""},
