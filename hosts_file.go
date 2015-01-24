@@ -54,7 +54,7 @@ func (h *HostsReader) ReadFunc(f HostsReaderFunc) {
 }
 
 func (h *HostsReader) ReadAll() []*HostEntry {
-	result := make([]*HostEntry, 0, 100)
+	result := make([]*HostEntry, 0)
 
 	h.ReadFunc(func(h *HostEntry) {
 		result = append(result, h)
