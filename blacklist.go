@@ -26,8 +26,5 @@ func (s *Server) IsBlocked(msg *dns.Msg) []bool {
 
 // IsHostBlocked returns true if a hostname is blocked.
 func (s *Server) IsHostBlocked(host string) bool {
-	if s.blacklist[host] {
-		return true
-	}
-	return false
+	return s.blacklist[host]
 }
