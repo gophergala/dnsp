@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/gophergala/dnsp"
+	"github.com/miekg/dns"
 )
 
-func TestIsHostBlocked(t *testing.T) {
+func TestIsBlocked(t *testing.T) {
 	t.Parallel()
 
 	s, err := dnsp.NewServer(dnsp.Options{
@@ -17,12 +18,17 @@ func TestIsHostBlocked(t *testing.T) {
 	}
 
 	for host, blocked := range map[string]bool{
-		"example.com": false,
-		"blocked.net": true,
+		"example.com.": false,
+		"blocked.net.": true,
 	} {
 		if act := s.IsHostBlocked(host); blocked != act {
 			t.Errorf("expected s.IsHostBlocked(%q) to be %v, got %v", host, blocked, act)
 		}
-	}
 
+		m := &dns.Msg{}
+		m.SetQuestion(dns.Fqdn(host), dns.TypeA)
+		if act := s.IsBlocked(m); blocked != act[0] {
+			t.Errorf("expected s.IsBlocked(%T{%q}) to be %v, got %v", m, host, []bool{blocked}, act)
+		}
+	}
 }
