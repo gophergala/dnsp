@@ -30,6 +30,7 @@
       border-radius: 8px;
       margin: 10px;
       padding-bottom: 10px;
+      position: relative;
     }
     .blacklist {
       background-color: #283047;
@@ -43,6 +44,17 @@
     }
     .blacklist h2 {
       color: #E8EAF0;
+    }
+    .overlay {
+      position: absolute;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #eee;
+      opacity: 0.8;
+      border-radius: 8px;
     }
 
     .list-group {
@@ -102,6 +114,21 @@
       color: #283047;
     }
   </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Get the mode and set up the page
+      var mode;
+      $.getJSON("/mode", function(data) {
+        mode = data.mode;
+        if (mode != "black") {
+          $(".whitelist .overlay").hide();
+          $(".blacklist .overlay").show();
+        }
+      });
+    });
+  </script>
 </head>
 
 <body>
@@ -123,7 +150,7 @@
                 <h3>Personal</h3>
                 <div class="list-group-content">
                   <div class="host-count">
-                    <div class="host-amount">25</div>
+                    <div id="personal-black-count" class="host-amount">0</div>
                     HOSTS BLOCKED
                   </div>
                 </div>
@@ -155,7 +182,7 @@
                 <h3>Public</h3>
                 <div class="list-group-content">
                   <div class="host-count">
-                    <div class="host-amount">1,134,567</div>
+                    <div id="public-black-count" class="host-amount">0</div>
                     HOSTS BLOCKED
                   </div>
                 </div>
@@ -163,6 +190,7 @@
 
             </div>
           </div>
+          <div class="overlay" style="display:none"></div>
         </div>
       </div>
 
@@ -175,7 +203,7 @@
             <h3>Personal</h3>
             <div class="list-group-content">
               <div class="host-count">
-                <div class="host-amount">13</div>
+                <div id="personal-white-count"class="host-amount">0</div>
                 HOSTS ALLOWED
               </div>
             </div>
@@ -199,6 +227,7 @@
             </div>
           </div>
 
+          <div class="overlay"></div>
         </div>
 
       </div>

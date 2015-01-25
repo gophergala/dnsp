@@ -3,8 +3,10 @@ package dnsp
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -14,12 +16,33 @@ type httpServer struct {
 }
 
 func (h *httpServer) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	// TODO: Copy index to w
-	fmt.Fprint(w, "Not protected!\n")
+	index, err := os.Open("/Users/leavengood/go/src/github.com/gophergala/dnsp/web-ui/index.html")
+	if err == nil {
+		io.Copy(w, index)
+	} else {
+		fmt.Fprintf(w, "Error: %v", err)
+	}
+}
+
+func (h *httpServer) logo(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	index, err := os.Open("/Users/leavengood/go/src/github.com/gophergala/dnsp/web-ui/logo.png")
+	if err == nil {
+		io.Copy(w, index)
+	} else {
+		fmt.Fprintf(w, "Error: %v", err)
+	}
+}
+
+func (h *httpServer) mode(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	mode := "black"
+	if h.server.white {
+		mode = "white"
+	}
+	fmt.Fprintf(w, "{\"mode\":%q}\n", mode)
 }
 
 func (h *httpServer) publicListCount(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "{count:%d}\n", 0) //h.server.publicListCount())
+	fmt.Fprintf(w, "{\"count\":%d}\n", 1234) //h.server.publicListCount())
 }
 
 func (h *httpServer) list(white bool) httprouter.Handle {
@@ -71,6 +94,9 @@ func RunHTTPServer(host string, s *Server) {
 	router := httprouter.New()
 
 	router.GET("/", h.index)
+	router.GET("/logo.png", h.logo)
+
+	router.GET("/mode", h.mode)
 
 	// Gets the count for the public blacklist
 	router.GET("/blacklist/public", h.publicListCount)
