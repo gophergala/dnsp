@@ -4,16 +4,87 @@
 ### Installation
 
 ```sh
-go get -u github.com/gophergala/dnsp
-go install github.com/gophergala/dnsp
+$ go get -u github.com/gophergala/dnsp
+$ go install github.com/gophergala/dnsp
 ```
 
+### Example Usage
 
-### Usage
+* Forward all queries to Google's public nameservers:
 
 ```sh
-dnsp -h
+& sudo dnsp --resolve 8.8.4.4,8.8.8.8
 ```
+
+* Use a community-managed blacklist from [hosts-files.net]:
+
+```sh
+$ sudo dnsp --blacklist=http://hosts-file.net/download/hosts.txt
+```
+
+* Block everything except Wikipedia:
+
+```sh
+$ cat > /etc/dnsp.whitelist << EOF
+*.wikipedia.org
+*.wikimedia.org
+wikipedia.org
+wikimedia.org
+EOF
+
+$ sudo dnsp -r 8.8.8.8 --whitelist=/etc/dnsp.whitelist
+```
+
+
+### Advanced Usage
+
+```sh
+$ dnsp -h
+NAME:
+   dnsp - DNS proxy with whitelist/blacklist support
+
+USAGE:
+   dnsp [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.0
+
+COMMANDS:
+   help, h      Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --net, -n "udp"          listen protocol (‘tcp’ or ‘udp’) [$DNSP_NET]
+   --listen, -l ":dns"      listen address (host:port, host or :port) [$DNSP_BIND]
+   --resolve, -r "8.8.4.4"  comma-separated list of name servers (host:port or host) [$DNSP_SERVER]
+   --whitelist, -w          URL or path to file containing whitelisted hosts [$DNSP_WHITELIST]
+   --blacklist, -b          URL or path to file containing blacklisted hosts [$DNSP_BLACKLIST]
+   --help, -h               show help
+   --version, -v            print the version
+```
+
+**Notes:**
+
+* `--listen` defaults to `:dns`, which is equivalent to `0.0.0.0:53`, meaning:
+  listen on all interfaces, on port 53 (default DNS port). 
+* `--resolve` defaults to the list of nameservers found in `/etc/resolv.conf`.
+  If no nameservers were found, or the file does not exist (e.g. on Windows),
+  the default value will be `8.8.4.4,8.8.8.8" (Google's public DNS service).
+  * However, explicitly setting `--resolve` to `false` or an empty string
+	disables resolving completely. What that means is all queries will still be
+	checked against the active whitelist or blacklist, but ones that would not
+	be blocked will return a failure response (as opposed to no response).
+* `--whitelist` and `--blacklist` are mutually exclusive. Setting both is an error.
+* `--whitelist` and `--blacklist` files are parsed according to a simple syntax:
+  * Empty lines are ignored, and `#` begins a single-line comment.
+  * Each line can contain a single hostname to be whitelisted or blacklisted.
+  * Alternatively, a line can contain a pattern like `*.wikipedia.org` or
+	`*.xxx`.
+  * Additionally, the `/etc/hosts`-like syntax is supported.
+	* However, only lines starting with `127.0.0.1` or `::1` are taken into
+	  parsed, everything else is ignored.
+	* This is for compatibility with popular, regularly updated blocklists like
+	  the ones on [hosts-file.net](http://hosts-file.net).
+* `--whitelist` and `--blacklist` support both file paths and URLs.
 
 
 ### Running with a non-root user

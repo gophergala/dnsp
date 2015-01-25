@@ -55,7 +55,7 @@ func main() {
 	}
 	app.Action = func(c *cli.Context) {
 		resolve := []string{}
-		if res := c.String("resolve"); res != "" {
+		if res := c.String("resolve"); res != "false" && res != "" {
 			resolve = strings.Split(res, ",")
 		}
 		o := &dnsp.Options{
