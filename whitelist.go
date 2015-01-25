@@ -8,11 +8,9 @@ import (
 	"github.com/miekg/dns"
 )
 
-// Host flags used in the whitelist/blacklist map.
 const (
-	Unknown host = iota
-	White        // whitelisted
-	Black        // blacklisted
+	white = iota + 1 // whitelisted
+	black            // blacklisted
 )
 
 type host uint8
@@ -24,7 +22,7 @@ func (s *Server) Whitelist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
 	} else {
-		setHost(s.hosts, host, White)
+		setHost(s.hosts, host, white)
 	}
 }
 
@@ -34,7 +32,7 @@ func (s *Server) Blacklist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
 	} else {
-		setHost(s.hosts, host, Black)
+		setHost(s.hosts, host, black)
 	}
 }
 
@@ -57,7 +55,7 @@ func setHost(hosts map[string]host, host string, b host) {
 func (s *Server) IsAllowed(host string) bool {
 	b := s.hosts[host]
 	if s.white { // check whitelists
-		if b == White {
+		if b == white {
 			return true
 		}
 		for _, rx := range s.rxWhitelist {
@@ -68,7 +66,7 @@ func (s *Server) IsAllowed(host string) bool {
 		return false
 	}
 	// check blacklists
-	if b == Black {
+	if b == black {
 		return false
 	}
 	for _, rx := range s.rxBlacklist {
