@@ -18,6 +18,7 @@ func TestHostReader(t *testing.T) {
 		"blocked.net",
 		"blocked.org",
 		"6.blocked.info",
+		"blocked.biz",
 	}
 
 	dnsp.ReadConfig(bytes.NewBufferString(`
@@ -32,6 +33,7 @@ bar.net  # with comment
 127.0.0.1 blocked.com
 127.0.0.1 blocked.net blocked.org
 ::1 6.blocked.info
+0.0.0.0 blocked.biz
 
 1.2.3.4 not-blocked.com
 		`), func(host string) {

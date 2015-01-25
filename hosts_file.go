@@ -22,7 +22,7 @@ func readConfig(src io.Reader, fn func(string)) {
 		case 1: // single hostname
 			fn(parts[0])
 		default: // hosts file like syntax
-			if parts[0] == "127.0.0.1" || parts[0] == "::1" {
+			if parts[0] == "127.0.0.1" || parts[0] == "0.0.0.0" || parts[0] == "::1" {
 				for _, host := range parts[1:] {
 					fn(host)
 				}
