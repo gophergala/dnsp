@@ -170,14 +170,6 @@
         }
       });
 
-      $.getJSON("/list", function(data) {
-        updateCount(data.length)
-
-        for (var i = 0; i < data.length; i++) {
-          addHostToList(data[i]);
-        }
-      });
-
       $(".add-button").click(function() {
         var input = $(this).parent().find('.url-input');
         var url = input.val();

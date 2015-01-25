@@ -1,7 +1,6 @@
 package dnsp
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -42,15 +41,7 @@ func (h *httpServer) mode(w http.ResponseWriter, r *http.Request, _ httprouter.P
 }
 
 func (h *httpServer) publicListCount(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "{\"count\":%d}\n", 1234) // TODO: h.server.publicListCount())
-}
-
-func (h *httpServer) list(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	// TODO: Get the real list
-	urls := []string{"1", "2", "3"}
-
-	encoder := json.NewEncoder(w)
-	encoder.Encode(urls)
+	fmt.Fprintf(w, "{\"count\":%d}\n", 0) // TODO: h.server.publicListCount())
 }
 
 func (h *httpServer) add(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -64,8 +55,8 @@ func (h *httpServer) add(w http.ResponseWriter, r *http.Request, ps httprouter.P
 
 func (h *httpServer) remove(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	url := ps.ByName("url")
-	// TODO
-	// h.server.removeHostEntry(url)
+
+	h.server.removeHostEntry(url)
 
 	// TODO: different response?
 	fmt.Fprintf(w, "{removed:%q}\n", url)
@@ -84,8 +75,6 @@ func RunHTTPServer(host string, s *Server) {
 	// Gets the count for the public blacklist
 	router.GET("/blacklist/public", h.publicListCount)
 
-	// Gets the personal list
-	router.GET("/list", h.list)
 	// Adds a new URL to the list
 	router.PUT("/list/:url", h.add)
 	// Removes a URL from the list
