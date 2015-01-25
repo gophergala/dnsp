@@ -49,6 +49,11 @@ func main() {
 			Usage:  "URL or path to file containing blacklisted hosts",
 			EnvVar: "DNSP_BLACKLIST",
 		},
+		cli.DurationFlag{
+			Name:   "poll, p",
+			Usage:  "poll the whitelist or blacklist for updates",
+			EnvVar: "DNSP_POLL",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		resolve := []string{}
@@ -59,6 +64,7 @@ func main() {
 			Net:       c.String("net"),
 			Bind:      c.String("listen"),
 			Resolve:   resolve,
+			Poll:      c.Duration("poll"),
 			Whitelist: c.String("whitelist"),
 			Blacklist: c.String("blacklist"),
 		}

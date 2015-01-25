@@ -1,7 +1,10 @@
 package dnsp
 
 import (
+	"log"
 	"regexp"
+	"sync"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -17,12 +20,14 @@ type Server struct {
 	// When set to false, it will resolve anything that is not blacklisted.
 	white bool
 
-	// Hosts is a combined whitelist/blacklist. It contains both whitelist and blacklist entries.
+	// Protect access to the hosts file with a mutex.
+	m sync.RWMutex
+
+	// A combined whitelist/blacklist. It contains both whitelist and blacklist entries.
 	hosts hosts
 
-	// Regex based whitelist and blacklist.
-	rxWhitelist []*regexp.Regexp
-	rxBlacklist []*regexp.Regexp
+	// Regex based whitelist and blacklist, depending on the value of `white`.
+	hostsRX []*regexp.Regexp
 }
 
 // NewServer creates a new Server with the given options.
@@ -40,14 +45,24 @@ func NewServer(o Options) (*Server, error) {
 		white: o.Whitelist != "",
 		hosts: hosts{},
 	}
-	if o.Whitelist != "" {
-		if err := s.loadWhitelist(o.Whitelist); err != nil {
+
+	hostListPath := o.Whitelist
+	if hostListPath == "" {
+		hostListPath = o.Blacklist
+	}
+	if hostListPath != "" {
+		if err := s.loadHostEntries(hostListPath); err != nil {
 			return nil, err
 		}
-	}
-	if o.Blacklist != "" {
-		if err := s.loadBlacklist(o.Blacklist); err != nil {
-			return nil, err
+		if o.Poll != 0 {
+			go func() {
+				for _ = range time.Tick(o.Poll) {
+					log.Printf("dnsp: checking %q for updates…", hostListPath)
+					if err := s.loadHostEntries(hostListPath); err != nil {
+						log.Printf("dnsp: %s", err)
+					}
+				}
+			}()
 		}
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
