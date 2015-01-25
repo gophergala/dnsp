@@ -56,8 +56,33 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 	return result
 }
 
+// Load the host entries into separate structures and swap the existing entries.
 func (s *Server) loadHostEntries(path string) error {
-	return readHosts(path, s.addHostEntry)
+	hosts := hosts{}
+	hostsRX := []*regexp.Regexp{}
+
+	if err := readHosts(path, func(host string) {
+		if host[len(host)-1] != '.' {
+			host += "."
+		}
+
+		if !strings.ContainsRune(host, '*') {
+			// Plain host string:
+			hosts[host] = struct{}{}
+		} else if pat := compilePattern(host); pat != nil {
+			// Host pattern (regex):
+			hostsRX = append(hostsRX, compilePattern(host))
+		}
+	}); err != nil {
+		return err
+	}
+
+	s.m.Lock()
+	s.hosts = hosts
+	s.hostsRX = hostsRX
+	s.m.Unlock()
+
+	return nil
 }
 
 func (s *Server) addHostEntry(host string) {
@@ -68,15 +93,13 @@ func (s *Server) addHostEntry(host string) {
 		host += "."
 	}
 
-	// Plain host string:
 	if !strings.ContainsRune(host, '*') {
+		// Plain host string:
 		s.m.Lock()
 		s.hosts[host] = struct{}{}
 		s.m.Unlock()
-	}
-
-	// Host pattern (regex):
-	if pat := compilePattern(host); pat != nil {
+	} else if pat := compilePattern(host); pat != nil {
+		// Host pattern (regex):
 		s.m.Lock()
 		s.hostsRX = append(s.hostsRX, compilePattern(host))
 		s.m.Unlock()
