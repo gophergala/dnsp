@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	Unknown listType = iota
-	White            // whitelisted
-	Black            // blacklisted
+	Unknown host = iota
+	White        // whitelisted
+	Black        // blacklisted
 )
 
-type listType uint8
+type host uint8
 
-type hosts map[string]listType
+type hosts map[string]host
 
 // Whitelist whitelists a hosts.
 func (s *Server) Whitelist(host string) {
@@ -26,7 +26,7 @@ func (s *Server) Blacklist(host string) {
 	setHost(s.hosts, host, Black)
 }
 
-func setHost(hosts map[string]listType, host string, b listType) {
+func setHost(hosts map[string]host, host string, b host) {
 	if host == "" {
 		return
 	}
