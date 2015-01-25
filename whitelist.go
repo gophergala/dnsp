@@ -14,6 +14,8 @@ const (
 
 type listType uint8
 
+type hosts map[string]listType
+
 // Whitelist whitelists a hosts.
 func (s *Server) Whitelist(host string) {
 	setHost(s.hosts, host, White)
@@ -57,4 +59,12 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 		}
 	}
 	return result
+}
+
+func loadWhitelist(h hosts, path string) error {
+	return nil
+}
+
+func loadBlacklist(h hosts, path string) error {
+	return nil
 }

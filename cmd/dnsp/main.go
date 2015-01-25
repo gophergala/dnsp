@@ -69,7 +69,10 @@ func main() {
 			cli.ShowAppHelp(c)
 			log.Fatalf("dnsp: %s", err)
 		}
-		s := dnsp.NewServer(*o)
+		s, err := dnsp.NewServer(*o)
+		if err != nil {
+			log.Fatalf("dnsp: %s", err)
+		}
 
 		catch(func(sig os.Signal) int {
 			os.Stderr.Write([]byte{'\r'})

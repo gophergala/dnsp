@@ -3,6 +3,7 @@ package dnsp
 
 import (
 	"log"
+	"regexp"
 
 	"github.com/miekg/dns"
 )
@@ -19,11 +20,15 @@ type Server struct {
 	white bool
 
 	// Hosts is a combined whitelist/blacklist. It contains both whitelist and blacklist entries.
-	hosts map[string]listType
+	hosts hosts
+
+	// Regex based whitelist and blacklist.
+	rxWhitelist []regexp.Regexp
+	rxBlacklist []regexp.Regexp
 }
 
 // NewServer creates a new Server with the given options.
-func NewServer(o Options) *Server {
+func NewServer(o Options) (*Server, error) {
 	s := Server{
 		c: &dns.Client{},
 		s: &dns.Server{
@@ -31,7 +36,17 @@ func NewServer(o Options) *Server {
 			Addr: o.Bind,
 		},
 		white: o.Whitelist != "",
-		hosts: map[string]listType{},
+		hosts: hosts{},
+	}
+	if o.Whitelist != "" {
+		if err := loadWhitelist(s.hosts, o.Whitelist); err != nil {
+			return nil, err
+		}
+	}
+	if o.Blacklist != "" {
+		if err := loadBlacklist(s.hosts, o.Blacklist); err != nil {
+			return nil, err
+		}
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		// If no upstream proxy is present, drop the query:
@@ -59,7 +74,7 @@ func NewServer(o Options) *Server {
 		}
 		dns.HandleFailed(w, r)
 	})
-	return &s
+	return &s, nil
 }
 
 // ListenAndServe runs the server
