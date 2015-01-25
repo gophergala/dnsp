@@ -106,6 +106,36 @@ func (s *Server) addHostEntry(host string) {
 	}
 }
 
+func (s *Server) removeHostEntry(host string) {
+	if host == "" {
+		return
+	}
+	if host[len(host)-1] != '.' {
+		host += "."
+	}
+
+	if !strings.ContainsRune(host, '*') {
+		// Plain host string:
+		s.m.Lock()
+		delete(s.hosts, host)
+		s.m.Unlock()
+	} else if rx := compilePattern(host); rx != nil {
+		// Host pattern (regex):
+		pat := rx.String()
+		for i, rx := range s.hostsRX {
+			if rx.String() == pat {
+				tail := len(s.hostsRX) - 1
+				// Swap the current element with the last one:
+				s.hostsRX[i] = s.hostsRX[tail]
+				// Re-slice to pop the last element:
+				s.hostsRX = s.hostsRX[:tail]
+				break
+			}
+		}
+		s.m.Unlock()
+	}
+}
+
 func compilePattern(pat string) *regexp.Regexp {
 	pat = strings.Replace(pat, ".", `\.`, -1)
 	pat = strings.Replace(pat, "*", ".*", -1)
