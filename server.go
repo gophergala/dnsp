@@ -1,7 +1,6 @@
 package dnsp
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -21,12 +20,17 @@ type Server struct {
 
 	// Protect access to the hosts file with a mutex.
 	m sync.RWMutex
-
 	// A combined whitelist/blacklist. It contains both whitelist and blacklist entries.
 	hosts hosts
-
 	// Regex based whitelist and blacklist, depending on the value of `white`.
 	hostsRX hostsRX
+
+	// Information about the hosts file, used for polling:
+	hostsFile struct {
+		size  int64
+		path  string
+		mtime time.Time
+	}
 }
 
 // NewServer creates a new Server with the given options.
@@ -49,20 +53,12 @@ func NewServer(o Options) (*Server, error) {
 	if hostListPath == "" {
 		hostListPath = o.Blacklist
 	}
-	if hostListPath != "" {
-		if err := s.loadHostEntries(hostListPath); err != nil {
-			return nil, err
-		}
-		if o.Poll != 0 {
-			go func() {
-				for _ = range time.Tick(o.Poll) {
-					log.Printf("dnsp: checking %q for updates…", hostListPath)
-					if err := s.loadHostEntries(hostListPath); err != nil {
-						log.Printf("dnsp: %s", err)
-					}
-				}
-			}()
-		}
+	s.hostsFile.path = hostListPath
+	if err := s.loadHostEntries(); err != nil {
+		return nil, err
+	}
+	if o.Poll != 0 {
+		go s.monitorHostEntries(o.Poll)
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		// If no upstream proxy is present, drop the query:
