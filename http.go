@@ -42,49 +42,52 @@ func (h *httpServer) mode(w http.ResponseWriter, r *http.Request, _ httprouter.P
 }
 
 func (h *httpServer) publicListCount(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "{\"count\":%d}\n", 1234) //h.server.publicListCount())
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(h.server.publicEntriesCount())
 }
 
-func (h *httpServer) list(white bool) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		// var urls []string
-		urls := []string{"1", "2", "3"}
-		if white {
-			// urls = {"1", "2"} //h.server.whitelist()
-		} else {
-			// urls = {"3", "4"} //h.server.blacklist()
-		}
-
-		encoder := json.NewEncoder(w)
-		encoder.Encode(urls)
-	}
+func (h *httpServer) list(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(h.server.privateHostEntries())
 }
 
 func (h *httpServer) add(white bool) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		url := ps.ByName("url")
-		if white {
-			// h.server.addToWhitelist(url)
-		} else {
-			// h.server.addToBlacklist(url)
+		w.Header().Set("Content-Type", "application/json")
+
+		if h.server.white && !white {
+			w.WriteHeader(422)
+			w.Write([]byte(`{"error":"unprocessable_entity","message":"server is running in whitelist mode"`))
+			return
+		}
+		if !h.server.white && white {
+			w.WriteHeader(422)
+			w.Write([]byte(`{"error":"unprocessable_entity","message":"server is running in blacklist mode"`))
+			return
 		}
 
-		// TODO: response?
-		fmt.Fprintf(w, "{add:%q}\n", url)
+		h.server.addPrivateHostEntry(ps.ByName("url"))
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 
 func (h *httpServer) remove(white bool) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		url := ps.ByName("url")
-		if white {
-			// h.server.removeFromWhitelist(url)
-		} else {
-			// h.server.removeFromBlacklist(url)
+		w.Header().Set("Content-Type", "application/json")
+
+		if h.server.white && !white {
+			w.WriteHeader(422)
+			w.Write([]byte(`{"error":"unprocessable_entity","message":"server is running in whitelist mode"`))
+			return
+		}
+		if !h.server.white && white {
+			w.WriteHeader(422)
+			w.Write([]byte(`{"error":"unprocessable_entity","message":"server is running in blacklist mode"`))
+			return
 		}
 
-		// TODO: response?
-		fmt.Fprintf(w, "{remove:%q}\n", url)
+		h.server.removePrivateHostEntry(ps.ByName("url"))
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 
@@ -102,14 +105,14 @@ func RunHTTPServer(host string, s *Server) {
 	router.GET("/blacklist/public", h.publicListCount)
 
 	// Gets the personal blacklist
-	router.GET("/blacklist", h.list(false))
+	router.GET("/blacklist", h.list)
 	// Adds a new URL to the blacklist
 	router.PUT("/blacklist/:url", h.add(false))
 	// Removes a URL from the blacklist
 	router.DELETE("/blacklist/:url", h.remove(false))
 
 	// Gets the personal whitelist
-	router.GET("/whitelist", h.list(true))
+	router.GET("/whitelist", h.list)
 	// Adds a new URL to the whitelist
 	router.PUT("/whitelist/:url", h.add(true))
 	// Removes a URL from the whitelist

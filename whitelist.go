@@ -175,6 +175,13 @@ func (s *Server) removeHostEntry(host string) {
 	}
 }
 
+func (s *Server) publicEntriesCount() int {
+	s.m.Lock()
+	n := len(s.hosts) + len(s.hostsRX)
+	s.m.Unlock()
+	return n
+}
+
 func compilePattern(pat string) *regexp.Regexp {
 	pat = strings.Replace(pat, ".", `\.`, -1)
 	pat = strings.Replace(pat, "*", ".*", -1)
