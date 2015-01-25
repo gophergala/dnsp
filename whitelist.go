@@ -18,9 +18,11 @@ type hosts map[string]struct{}
 // NOTE: "host" must end with a dot.
 func (s *Server) isAllowed(host string) bool {
 	s.m.RLock()
+	defer s.m.RUnlock()
+
 	_, ok := s.hosts[host]
-	s.m.RUnlock()
-	if s.white { // check whitelists
+
+	if s.white { // whitelist mode
 		if ok {
 			return true
 		}
@@ -31,7 +33,8 @@ func (s *Server) isAllowed(host string) bool {
 		}
 		return false
 	}
-	// check blacklists
+
+	// blacklist mode
 	if ok {
 		return false
 	}
@@ -53,56 +56,41 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 	return result
 }
 
-// whitelist whitelists a host or a pattern.
-func (s *Server) whitelist(host string) {
-	if strings.ContainsRune(host, '*') {
-		s.hostsRX = appendPattern(s.hostsRX, host)
-	} else {
-		s.markHost(host)
-	}
+func (s *Server) loadHostEntries(path string) error {
+	return readHosts(path, s.addHostEntry)
 }
 
-// blacklist blacklists a host or a pattern.
-func (s *Server) blacklist(host string) {
-	if strings.ContainsRune(host, '*') {
-		s.hostsRX = appendPattern(s.hostsRX, host)
-	} else {
-		s.markHost(host)
-	}
-}
-
-func (s *Server) markHost(host string) {
+func (s *Server) addHostEntry(host string) {
 	if host == "" {
 		return
 	}
 	if host[len(host)-1] != '.' {
 		host += "."
 	}
-	s.m.Lock()
-	s.hosts[host] = struct{}{}
-	s.m.Unlock()
-}
 
-func (s *Server) loadWhitelist(path string) error {
-	return readHosts(path, s.whitelist)
-}
-
-func (s *Server) loadBlacklist(path string) error {
-	return readHosts(path, s.blacklist)
-}
-
-func appendPattern(rx []*regexp.Regexp, pat string) []*regexp.Regexp {
-	if pat == "" {
-		return rx
+	// Plain host string:
+	if !strings.ContainsRune(host, '*') {
+		s.m.Lock()
+		s.hosts[host] = struct{}{}
+		s.m.Unlock()
 	}
 
+	// Host pattern (regex):
+	if pat := compilePattern(host); pat != nil {
+		s.m.Lock()
+		s.hostsRX = append(s.hostsRX, compilePattern(host))
+		s.m.Unlock()
+	}
+}
+
+func compilePattern(pat string) *regexp.Regexp {
 	pat = strings.Replace(pat, ".", `\.`, -1)
 	pat = strings.Replace(pat, "*", ".*", -1)
-	pat = "^" + pat + `\.$`
-	if r, err := regexp.Compile(pat); err != nil {
+	pat = "^" + pat + `$`
+	rx, err := regexp.Compile(pat)
+	if err != nil {
 		log.Printf("dnsp: could not compile %q: %s", pat, err)
-	} else {
-		rx = append(rx, r)
+		return nil
 	}
 	return rx
 }

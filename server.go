@@ -45,26 +45,22 @@ func NewServer(o Options) (*Server, error) {
 		white: o.Whitelist != "",
 		hosts: hosts{},
 	}
-	if o.Whitelist != "" {
-		if err := s.loadWhitelist(o.Whitelist); err != nil {
-			return nil, err
-		}
-		if o.Poll != 0 {
-			go func() {
-				for _ = range time.Tick(o.Poll) {
-					log.Printf("dnsp: checking %q for updates…", o.Whitelist)
-				}
-			}()
-		}
+
+	hostListPath := o.Whitelist
+	if hostListPath == "" {
+		hostListPath = o.Blacklist
 	}
-	if o.Blacklist != "" {
-		if err := s.loadBlacklist(o.Blacklist); err != nil {
+	if hostListPath != "" {
+		if err := s.loadHostEntries(hostListPath); err != nil {
 			return nil, err
 		}
 		if o.Poll != 0 {
 			go func() {
 				for _ = range time.Tick(o.Poll) {
-					log.Printf("dnsp: checking %q for updates…", o.Blacklist)
+					log.Printf("dnsp: checking %q for updates…", hostListPath)
+					if err := s.loadHostEntries(hostListPath); err != nil {
+						log.Printf("dnsp: %s", err)
+					}
 				}
 			}()
 		}
