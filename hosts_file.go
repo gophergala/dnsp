@@ -2,36 +2,11 @@ package dnsp
 
 import (
 	"bufio"
-	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 )
-
-type HostEntry struct {
-	IP   string
-	Host string
-}
-
-func (h *HostEntry) String() string {
-	return fmt.Sprintf("%v @ %v", h.Host, h.IP)
-}
-
-func ParseHostLine(line string) *HostEntry {
-	result := HostEntry{}
-
-	if len(line) > 0 {
-		parts := strings.Fields(line)
-
-		// TODO: More validation might be smart
-		if parts[0] != "#" && len(parts) >= 2 {
-			result.IP = parts[0]
-			result.Host = parts[1]
-		}
-	}
-
-	return &result
-}
 
 type HostsReader struct {
 	Reader io.Reader
@@ -41,36 +16,55 @@ func NewHostsReader(r io.Reader) *HostsReader {
 	return &HostsReader{Reader: r}
 }
 
-type HostsReaderFunc func(*HostEntry)
+// HostsReaderFunc is a function that takes a hostname as its first argument.
+// The second argument indicates whether the first argument is a regex pattern.
+type HostsReaderFunc func(string, bool)
 
-func (h *HostsReader) ReadFunc(f HostsReaderFunc) {
+func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 	scanner := bufio.NewScanner(h.Reader)
 	for scanner.Scan() {
-		hostEntry := ParseHostLine(scanner.Text())
-		if hostEntry.IP != "" {
-			f(hostEntry)
+		line := scanner.Text()
+		line = strings.SplitN(line, "#", 2)[0]
+
+		parts := strings.Fields(line)
+		switch len(parts) {
+		case 0: // empty line
+			continue
+		case 1: // hostname or regex
+			host := parts[0]
+			rx := strings.Contains(host, "*")
+			if rx { // prepare regular expression
+				host = strings.Replace(host, ".", `\.`, -1)
+				host = strings.Replace(host, "*", ".*", -1)
+				host = "^" + host + "$"
+			}
+			fn(host, rx)
+		default: // hosts file like syntax
+			if parts[0] == "127.0.0.1" || parts[0] == "::1" {
+				for _, host := range parts[1:] {
+					fn(host, false)
+				}
+			}
 		}
 	}
 }
 
-func (h *HostsReader) ReadAll() []*HostEntry {
-	result := make([]*HostEntry, 0)
-
-	h.ReadFunc(func(h *HostEntry) {
-		result = append(result, h)
-	})
-
-	return result
-}
-
-func ReadHostFile(filename string, f HostsReaderFunc) error {
-	file, err := os.Open(filename)
+func ReadHostFile(path string, fn HostsReaderFunc) error {
+	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
+	NewHostsReader(file).ReadFunc(fn)
+	file.Close()
+	return nil
+}
 
-	reader := NewHostsReader(file)
-	reader.ReadFunc(f)
-
+func ReadHostURL(url string, fn HostsReaderFunc) error {
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	NewHostsReader(res.Body).ReadFunc(fn)
+	res.Body.Close()
 	return nil
 }

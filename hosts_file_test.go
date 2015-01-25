@@ -1,62 +1,58 @@
 package dnsp_test
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/gophergala/dnsp"
 )
 
-func TestParseHostLine(t *testing.T) {
+func TestHostReader(t *testing.T) {
 	t.Parallel()
 
-	var hostLineTests = []struct {
-		line string
-		ip   string
-		host string
-	}{
-		{"127.0.0.1 ---.chine-li.info", "127.0.0.1", "---.chine-li.info"},
-		{"127.0.0.1  ---.chine-li.info  ", "127.0.0.1", "---.chine-li.info"},
-		{"127.0.0.1\t\t---.chine-li.info", "127.0.0.1", "---.chine-li.info"},
-		{"127.0.0.1 localhost # IPv4", "127.0.0.1", "localhost"},
-		{"# Comment line", "", ""},
-		{" # Comment with a space at the beginning", "", ""},
-		{"   # Comment with spaces at the beginning", "", ""},
-		{"   #   ", "", ""},
-		{"#", "", ""},
-		{"", "", ""},
+	i, exp := 0, []string{
+		"foo.com",
+		"bar.net",
+		`^.*\.xxx$`,
+		"blocked.com",
+		"blocked.net",
+		"blocked.org",
+		"6.blocked.info",
 	}
 
-	for _, test := range hostLineTests {
-		result := dnsp.ParseHostLine(test.line)
+	(&dnsp.HostsReader{
+		Reader: bytes.NewBufferString(`
+# Host names, one per line:
+foo.com
+bar.net  # with comment
 
-		if result.IP != test.ip {
-			t.Errorf("For test of line %q, IP was %q, expected it to be %q", test.line, result.IP, test.ip)
+# Regular expressions:
+*.xxx
+
+# Hosts file lines:
+127.0.0.1 blocked.com
+127.0.0.1 blocked.net blocked.org
+::1 6.blocked.info
+
+1.2.3.4 not-blocked.com
+		`)}).ReadFunc(func(host string, rx bool) {
+		if i > len(exp) {
+			t.Errorf("unexpected host read: %q", host)
+			return
 		}
 
-		if result.Host != test.host {
-			t.Errorf("For test of line %q, Host was %q, expected it to be %q", test.line, result.Host, test.host)
+		if exp[i] != host {
+			t.Errorf("expected %q, got %q", exp[i], host)
 		}
-	}
-}
 
-func TestHostsReaderReadAll(t *testing.T) {
-	t.Parallel()
+		if exp, act := (host[0] == '^'), rx; exp != act {
+			t.Errorf("expected (%q, %v), got %v", host, exp, act)
+		}
 
-	hostsFile := strings.NewReader(`127.0.0.1 ---.chine-li.info
-127.0.0.1 -ads.avast.dwnldfr.com
-# Comment
-127.0.0.1 -reports.com-57o.net
-127.0.0.1 0-29.com`)
+		i++
+	})
 
-	reader := dnsp.NewHostsReader(hostsFile)
-	result := reader.ReadAll()
-
-	if len(result) != 4 {
-		t.Errorf("Result is not of expected length 4")
-	}
-
-	if result[0].IP != "127.0.0.1" || result[0].Host != "---.chine-li.info" {
-		t.Errorf("First entry is wrong")
+	if i < len(exp) {
+		t.Errorf("hosts files not read: %q", exp[i:])
 	}
 }
