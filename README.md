@@ -5,7 +5,8 @@
 > `dnsp` is a lightweight but powerful DNS server. Queries are blocked or
 > resolved based on a blacklist or a whitelist. Wildcard host patterns are
 > supported (e.g. `*.com`) as well as hosted, community-managed hosts files.
-> Ideal for running on mobile devices or embedded systems.
+> Ideal for running on mobile devices or embedded systems, given its [low
+> memory footprint][1].
 
 
 ### Installation
@@ -137,5 +138,6 @@ Why, you ask, is a DNS proxy useful?
 ![dnsp](https://cloud.githubusercontent.com/assets/196617/5892473/cc29afe2-a4bf-11e4-9c6a-d1cc5169d62a.png)
 
 
+[1]: https://github.com/gophergala/dnsp/pull/15#issue-55432972
 [hosts-file.net]: http://hosts-file.net
 [AdBlock]: https://getadblock.com
