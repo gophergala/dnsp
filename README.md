@@ -16,7 +16,7 @@ $ go install github.com/gophergala/dnsp
 & sudo dnsp --resolve 8.8.4.4,8.8.8.8
 ```
 
-* Use a community-managed blacklist from [hosts-files.net]:
+* Use a community-managed blacklist from [hosts-file.net]:
 
 ```sh
 $ sudo dnsp --blacklist=http://hosts-file.net/download/hosts.txt
