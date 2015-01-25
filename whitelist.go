@@ -17,13 +17,13 @@ type host uint8
 
 type hosts map[string]host
 
-// IsAllowed returns whether we are allowed to resolve this host.
+// isAllowed returns whether we are allowed to resolve this host.
 //
 // If the server is whitelisting, the rusilt will be true if the host is on the whitelist.
 // If the server is blacklisting, the result will be true if the host is NOT on the blacklist.
 //
 // NOTE: "host" must end with a dot.
-func (s *Server) IsAllowed(host string) bool {
+func (s *Server) isAllowed(host string) bool {
 	b := s.hosts[host]
 	if s.white { // check whitelists
 		if b == white {
@@ -51,7 +51,7 @@ func (s *Server) IsAllowed(host string) bool {
 func (s *Server) filter(qs []dns.Question) []dns.Question {
 	result := []dns.Question{}
 	for _, q := range qs {
-		if s.IsAllowed(q.Name) {
+		if s.isAllowed(q.Name) {
 			result = append(result, q)
 		}
 	}
