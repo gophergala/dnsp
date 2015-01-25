@@ -18,8 +18,7 @@ func NewHostsReader(r io.Reader) *HostsReader {
 }
 
 // HostsReaderFunc is a function that takes a hostname as its first argument.
-// The second argument indicates whether the first argument is a regex pattern.
-type HostsReaderFunc func(string, bool)
+type HostsReaderFunc func(string)
 
 func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 	scanner := bufio.NewScanner(h.Reader)
@@ -31,19 +30,12 @@ func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 		switch len(parts) {
 		case 0: // empty line
 			continue
-		case 1: // hostname or regex
-			host := parts[0]
-			rx := strings.Contains(host, "*")
-			if rx { // prepare regular expression
-				host = strings.Replace(host, ".", `\.`, -1)
-				host = strings.Replace(host, "*", ".*", -1)
-				host = "^" + host + "$"
-			}
-			fn(host, rx)
+		case 1: // single hostname
+			fn(parts[0])
 		default: // hosts file like syntax
 			if parts[0] == "127.0.0.1" || parts[0] == "::1" {
 				for _, host := range parts[1:] {
-					fn(host, false)
+					fn(host)
 				}
 			}
 		}

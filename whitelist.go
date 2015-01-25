@@ -1,6 +1,12 @@
 package dnsp
 
-import "github.com/miekg/dns"
+import (
+	"log"
+	"regexp"
+	"strings"
+
+	"github.com/miekg/dns"
+)
 
 const (
 	Unknown host = iota
@@ -12,14 +18,23 @@ type host uint8
 
 type hosts map[string]host
 
-// Whitelist whitelists a hosts.
+// Whitelist whitelists a host or a pattern.
 func (s *Server) Whitelist(host string) {
-	setHost(s.hosts, host, White)
+	if strings.ContainsRune(host, '*') {
+		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
+	} else {
+		setHost(s.hosts, host, White)
+	}
 }
 
 // Blacklist blacklists a host.
+// If rx is true, the given host is treated as a regular expression.
 func (s *Server) Blacklist(host string) {
-	setHost(s.hosts, host, Black)
+	if strings.ContainsRune(host, '*') {
+		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
+	} else {
+		setHost(s.hosts, host, Black)
+	}
 }
 
 func setHost(hosts map[string]host, host string, b host) {
@@ -57,21 +72,21 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 }
 
 func (s *Server) loadWhitelist(path string) error {
-	return readHosts(path, func(host string, rx bool) {
-		if !rx {
-			s.Whitelist(host)
-			return
-		}
-		// TODO: handle regex whitelists
-	})
+	return readHosts(path, s.Whitelist)
 }
 
 func (s *Server) loadBlacklist(path string) error {
-	return readHosts(path, func(host string, rx bool) {
-		if !rx {
-			s.Blacklist(host)
-			return
-		}
-		// TODO: hasdle regex blacklists
-	})
+	return readHosts(path, s.Blacklist)
+}
+
+func appendPattern(rx []regexp.Regexp, pat string) []regexp.Regexp {
+	pat = strings.Replace(pat, ".", `\.`, -1)
+	pat = strings.Replace(pat, "*", ".*", -1)
+	pat = "^" + pat + "$"
+	if r, err := regexp.Compile(pat); err != nil {
+		log.Printf("dnsp: could not compile %q: %s", pat, err)
+	} else {
+		rx = append(rx, *r)
+	}
+	return rx
 }

@@ -13,7 +13,7 @@ func TestHostReader(t *testing.T) {
 	i, exp := 0, []string{
 		"foo.com",
 		"bar.net",
-		`^.*\.xxx$`,
+		`*.xxx`,
 		"blocked.com",
 		"blocked.net",
 		"blocked.org",
@@ -35,7 +35,7 @@ bar.net  # with comment
 ::1 6.blocked.info
 
 1.2.3.4 not-blocked.com
-		`)}).ReadFunc(func(host string, rx bool) {
+		`)}).ReadFunc(func(host string) {
 		if i > len(exp) {
 			t.Errorf("unexpected host read: %q", host)
 			return
@@ -43,10 +43,6 @@ bar.net  # with comment
 
 		if exp[i] != host {
 			t.Errorf("expected %q, got %q", exp[i], host)
-		}
-
-		if exp, act := (host[0] == '^'), rx; exp != act {
-			t.Errorf("expected (%q, %v), got %v", host, exp, act)
 		}
 
 		i++
