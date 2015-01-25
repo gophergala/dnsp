@@ -23,12 +23,11 @@ type Server struct {
 	// Protect access to the hosts file with a mutex.
 	m sync.RWMutex
 
-	// Hosts is a combined whitelist/blacklist. It contains both whitelist and blacklist entries.
+	// A combined whitelist/blacklist. It contains both whitelist and blacklist entries.
 	hosts hosts
 
-	// Regex based whitelist and blacklist.
-	rxWhitelist []*regexp.Regexp
-	rxBlacklist []*regexp.Regexp
+	// Regex based whitelist and blacklist, depending on the value of `white`.
+	hostsRX []*regexp.Regexp
 }
 
 // NewServer creates a new Server with the given options.

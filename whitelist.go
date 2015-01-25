@@ -31,7 +31,7 @@ func (s *Server) isAllowed(host string) bool {
 		if b == white {
 			return true
 		}
-		for _, rx := range s.rxWhitelist {
+		for _, rx := range s.hostsRX {
 			if rx.MatchString(host) {
 				return true
 			}
@@ -42,7 +42,7 @@ func (s *Server) isAllowed(host string) bool {
 	if b == black {
 		return false
 	}
-	for _, rx := range s.rxBlacklist {
+	for _, rx := range s.hostsRX {
 		if rx.MatchString(host) {
 			return false
 		}
@@ -63,7 +63,7 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 // whitelist whitelists a host or a pattern.
 func (s *Server) whitelist(host string) {
 	if strings.ContainsRune(host, '*') {
-		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
+		s.hostsRX = appendPattern(s.hostsRX, host)
 	} else {
 		s.setHost(host, white)
 	}
@@ -72,7 +72,7 @@ func (s *Server) whitelist(host string) {
 // blacklist blacklists a host or a pattern.
 func (s *Server) blacklist(host string) {
 	if strings.ContainsRune(host, '*') {
-		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
+		s.hostsRX = appendPattern(s.hostsRX, host)
 	} else {
 		s.setHost(host, black)
 	}
