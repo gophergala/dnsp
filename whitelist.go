@@ -1,6 +1,10 @@
 package dnsp
 
-import "github.com/miekg/dns"
+import (
+	"log"
+
+	"github.com/miekg/dns"
+)
 
 const (
 	Unknown listType = iota
@@ -37,6 +41,7 @@ func setHost(hosts map[string]listType, host string, b listType) {
 //
 // NOTE: "host" must end with a dot.
 func (s *Server) IsAllowed(host string) bool {
+	log.Printf("%s %#v", host, s.hosts)
 	b := s.hosts[host]
 	if s.white {
 		return b == White

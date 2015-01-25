@@ -10,7 +10,7 @@ func TestIsAllowedWhite(t *testing.T) {
 	t.Parallel()
 
 	s := dnsp.NewServer(dnsp.Options{
-		White: true,
+		Whitelist: "/etc/dnsp_allow.txt",
 	})
 	s.Whitelist("github.com")
 	s.Whitelist("google.com")
@@ -31,7 +31,7 @@ func TestIsAllowedBlack(t *testing.T) {
 	t.Parallel()
 
 	s := dnsp.NewServer(dnsp.Options{
-		White: false,
+		Blacklist: "/etc/dnsp_block.txt",
 	})
 	s.Blacklist("doubleclick.net")
 	s.Blacklist("porn.com")

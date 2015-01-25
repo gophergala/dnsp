@@ -3,7 +3,6 @@ package dnsp
 
 import (
 	"log"
-	"strings"
 
 	"github.com/miekg/dns"
 )
@@ -25,21 +24,18 @@ type Server struct {
 
 // NewServer creates a new Server with the given options.
 func NewServer(o Options) *Server {
-	if o.Server != "" && !strings.Contains(o.Server, ":") {
-		o.Server += ":53"
-	}
 	s := Server{
 		c: &dns.Client{},
 		s: &dns.Server{
-			Net:  "udp",
+			Net:  o.Net,
 			Addr: o.Bind,
 		},
-		white: o.White,
+		white: o.Whitelist != "",
 		hosts: map[string]listType{},
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
 		// If no upstream proxy is present, drop the query:
-		if o.Server == "" {
+		if len(o.Resolve) == 0 {
 			dns.HandleFailed(w, r)
 			return
 		}
@@ -51,15 +47,17 @@ func NewServer(o Options) *Server {
 		}
 
 		// Proxy Query:
-		in, rtt, err := s.c.Exchange(r, o.Server)
-		if err != nil {
-			log.Printf("error=exchange_failed details=%q", err)
-			dns.HandleFailed(w, r)
+		for _, addr := range o.Resolve {
+			in, rtt, err := s.c.Exchange(r, addr)
+			if err != nil {
+				log.Printf("dnsp: exchange failed: %s", err)
+				continue
+			}
+			log.Printf("dnsp: exchange successful, rtt=%s", rtt) // debug
+			w.WriteMsg(in)
 			return
 		}
-		log.Printf("debug=exchange_ok rtt=%s", rtt)
-		w.WriteMsg(in)
-
+		dns.HandleFailed(w, r)
 	})
 	return &s
 }
