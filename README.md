@@ -21,10 +21,11 @@ $ go install github.com/gophergala/dnsp
 $ sudo dnsp --resolve 8.8.4.4,8.8.8.8
 ```
 
-* Use a community-managed blacklist from [hosts-file.net]:
+* Use a community-managed blacklist from [hosts-file.net] and check it hourly
+  for changes:
 
 ```sh
-$ sudo dnsp --blacklist=http://hosts-file.net/download/hosts.txt
+$ sudo dnsp --blacklist=http://hosts-file.net/download/hosts.txt --poll 1h
 ```
 
 * Block everything except Wikipedia:
@@ -63,6 +64,7 @@ GLOBAL OPTIONS:
    --resolve, -r "8.8.4.4"  comma-separated list of name servers (host:port or host) [$DNSP_SERVER]
    --whitelist, -w          URL or path to file containing whitelisted hosts [$DNSP_WHITELIST]
    --blacklist, -b          URL or path to file containing blacklisted hosts [$DNSP_BLACKLIST]
+   --poll, -p "0"           poll the whitelist or blacklist for updates [$DNSP_POLL]
    --help, -h               show help
    --version, -v            print the version
 ```
@@ -90,6 +92,12 @@ GLOBAL OPTIONS:
 	* This is for compatibility with popular, regularly updated blocklists like
 	  the ones on [hosts-file.net].
 * `--whitelist` and `--blacklist` support both file paths and URLs.
+* `--poll` instructs `dnsp` to periodically check the whitelist or blacklist
+  file for changes.
+  * The file is only re-parsed if the file size or modification time has
+    changed since the last read.
+  * Same is true for URLs: the `Content-Length` and `Last-Modified` headers are
+    compared to previous values before re-downloading the file.
 
 
 ### Running with a non-root user
