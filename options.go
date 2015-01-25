@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 // Options can be passed to NewServer().
@@ -14,6 +15,7 @@ type Options struct {
 	Net     string
 	Bind    string
 	Resolve []string
+	Poll    time.Duration
 
 	Whitelist string
 	Blacklist string
@@ -48,6 +50,11 @@ func (o *Options) validate() error {
 		}
 		o.Resolve[i] = addr.String()
 	}
+
+	if o.Poll != 0 && o.Poll < time.Second {
+		return errors.New("--poll cannot be shorter than 1s")
+	}
+	o.Poll -= o.Poll % time.Second
 
 	var err error
 	if o.Whitelist != "" {
