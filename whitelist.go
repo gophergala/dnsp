@@ -8,14 +8,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-const (
-	white = iota + 1 // whitelisted
-	black            // blacklisted
-)
-
-type host uint8
-
-type hosts map[string]host
+type hosts map[string]struct{}
 
 // isAllowed returns whether we are allowed to resolve this host.
 //
@@ -25,10 +18,10 @@ type hosts map[string]host
 // NOTE: "host" must end with a dot.
 func (s *Server) isAllowed(host string) bool {
 	s.m.RLock()
-	b := s.hosts[host]
+	_, ok := s.hosts[host]
 	s.m.RUnlock()
 	if s.white { // check whitelists
-		if b == white {
+		if ok {
 			return true
 		}
 		for _, rx := range s.hostsRX {
@@ -39,7 +32,7 @@ func (s *Server) isAllowed(host string) bool {
 		return false
 	}
 	// check blacklists
-	if b == black {
+	if ok {
 		return false
 	}
 	for _, rx := range s.hostsRX {
@@ -65,7 +58,7 @@ func (s *Server) whitelist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.hostsRX = appendPattern(s.hostsRX, host)
 	} else {
-		s.setHost(host, white)
+		s.markHost(host)
 	}
 }
 
@@ -74,11 +67,11 @@ func (s *Server) blacklist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.hostsRX = appendPattern(s.hostsRX, host)
 	} else {
-		s.setHost(host, black)
+		s.markHost(host)
 	}
 }
 
-func (s *Server) setHost(host string, b host) {
+func (s *Server) markHost(host string) {
 	if host == "" {
 		return
 	}
@@ -86,7 +79,7 @@ func (s *Server) setHost(host string, b host) {
 		host += "."
 	}
 	s.m.Lock()
-	s.hosts[host] = b
+	s.hosts[host] = struct{}{}
 	s.m.Unlock()
 }
 
