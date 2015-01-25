@@ -83,7 +83,7 @@ GLOBAL OPTIONS:
 	* However, only lines starting with `127.0.0.1` or `::1` are taken into
 	  parsed, everything else is ignored.
 	* This is for compatibility with popular, regularly updated blocklists like
-	  the ones on [hosts-file.net](http://hosts-file.net).
+	  the ones on [hosts-file.net].
 * `--whitelist` and `--blacklist` support both file paths and URLs.
 
 
@@ -102,3 +102,22 @@ sudo chmod ug+s /usr/local/bin/dnsp
 
 While `dnsp` will still run with root privileges, at least now we can run it
 with a non-admin user (someone who is not in the `sudoers` group).
+
+
+### But… Why‽
+
+Why, you ask, is a DNS proxy useful?
+
+* It is a simple solution for blocking websites (like AdBlock).
+* Does not require an HTTP proxy or a SOCKS proxy. Some apps don't like that.
+* Easy to set up for mobile devices. Run `dnsmasq` on your router or in any
+  embedded Linux system, and configure your home router to use it as the DNS
+  server in DHCP responses. The blocklist will now apply to everyone on the
+  network.
+* Safer than `dnsmasq` for community managed hosts files. Because `dnsp`
+  doesn't do any rewriting (it either blocks or proxies), you don't have to
+  trust everyone having access to online hosts files not to redirect your
+  bank's website to their own servers.
+
+
+[hosts-file.net]: http://hosts-file.net
