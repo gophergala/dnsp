@@ -20,7 +20,7 @@ $ go install github.com/gophergala/dnsp
 * Forward all queries to Google's public nameservers:
 
 ```sh
-& sudo dnsp --resolve 8.8.4.4,8.8.8.8
+$ sudo dnsp --resolve 8.8.4.4,8.8.8.8
 ```
 
 * Use a community-managed blacklist from [hosts-file.net]:
