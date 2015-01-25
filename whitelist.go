@@ -10,6 +10,8 @@ import (
 
 type hosts map[string]struct{}
 
+type hostsRX map[string]regexp.Regexp
+
 // isAllowed returns whether we are allowed to resolve this host.
 //
 // If the server is whitelisting, the result will be true if the host is on the whitelist.
@@ -59,7 +61,7 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 // Load the host entries into separate structures and swap the existing entries.
 func (s *Server) loadHostEntries(path string) error {
 	hosts := hosts{}
-	hostsRX := []*regexp.Regexp{}
+	hostsRX := hostsRX{}
 
 	if err := readHosts(path, func(host string) {
 		if host[len(host)-1] != '.' {
@@ -69,9 +71,9 @@ func (s *Server) loadHostEntries(path string) error {
 		if !strings.ContainsRune(host, '*') {
 			// Plain host string:
 			hosts[host] = struct{}{}
-		} else if pat := compilePattern(host); pat != nil {
+		} else if rx := compilePattern(host); rx != nil {
 			// Host pattern (regex):
-			hostsRX = append(hostsRX, compilePattern(host))
+			hostsRX[rx.String()] = *rx
 		}
 	}); err != nil {
 		return err
@@ -101,7 +103,7 @@ func (s *Server) addHostEntry(host string) {
 	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		s.hostsRX = append(s.hostsRX, rx)
+		s.hostsRX[rx.String()] = *rx
 		s.m.Unlock()
 	}
 }
@@ -121,17 +123,8 @@ func (s *Server) removeHostEntry(host string) {
 		s.m.Unlock()
 	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
-		pat := rx.String()
-		for i, rx := range s.hostsRX {
-			if rx.String() == pat {
-				tail := len(s.hostsRX) - 1
-				// Swap the current element with the last one:
-				s.hostsRX[i] = s.hostsRX[tail]
-				// Re-slice to pop the last element:
-				s.hostsRX = s.hostsRX[:tail]
-				break
-			}
-		}
+		s.m.Lock()
+		delete(s.hostsRX, rx.String())
 		s.m.Unlock()
 	}
 }

@@ -2,7 +2,6 @@ package dnsp
 
 import (
 	"log"
-	"regexp"
 	"sync"
 	"time"
 
@@ -27,7 +26,7 @@ type Server struct {
 	hosts hosts
 
 	// Regex based whitelist and blacklist, depending on the value of `white`.
-	hostsRX []*regexp.Regexp
+	hostsRX hostsRX
 }
 
 // NewServer creates a new Server with the given options.
