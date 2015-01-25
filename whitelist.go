@@ -4,11 +4,14 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/miekg/dns"
 )
 
 type hosts map[string]struct{}
+
+type hostsRX map[string]*regexp.Regexp
 
 // isAllowed returns whether we are allowed to resolve this host.
 //
@@ -57,9 +60,13 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 }
 
 // Load the host entries into separate structures and swap the existing entries.
-func (s *Server) loadHostEntries(path string) error {
+func (s *Server) loadHostEntries() error {
 	hosts := hosts{}
-	hostsRX := []*regexp.Regexp{}
+	hostsRX := hostsRX{}
+
+	s.m.RLock()
+	path := s.hostsFile.path
+	s.m.RUnlock()
 
 	if err := readHosts(path, func(host string) {
 		if host[len(host)-1] != '.' {
@@ -69,9 +76,9 @@ func (s *Server) loadHostEntries(path string) error {
 		if !strings.ContainsRune(host, '*') {
 			// Plain host string:
 			hosts[host] = struct{}{}
-		} else if pat := compilePattern(host); pat != nil {
+		} else if rx := compilePattern(host); rx != nil {
 			// Host pattern (regex):
-			hostsRX = append(hostsRX, compilePattern(host))
+			hostsRX[rx.String()] = rx
 		}
 	}); err != nil {
 		return err
@@ -83,6 +90,36 @@ func (s *Server) loadHostEntries(path string) error {
 	s.m.Unlock()
 
 	return nil
+}
+
+func (s *Server) monitorHostEntries(poll time.Duration) {
+	s.m.RLock()
+	hf := s.hostsFile
+	s.m.RUnlock()
+
+	for _ = range time.Tick(poll) {
+		log.Printf("dnsp: checking %q for updates…", hf.path)
+
+		mtime, size, err := hostsFileMetadata(hf.path)
+		if err != nil {
+			log.Printf("dnsp: %s", err)
+			continue
+		}
+
+		if hf.mtime.Equal(mtime) && hf.size == size {
+			continue // no updates
+		}
+
+		if err := s.loadHostEntries(); err != nil {
+			log.Printf("dnsp: %s", err)
+		}
+
+		s.m.Lock()
+		s.hostsFile.mtime = mtime
+		s.hostsFile.size = size
+		hf = s.hostsFile
+		s.m.Unlock()
+	}
 }
 
 func (s *Server) addHostEntry(host string) {
@@ -98,10 +135,31 @@ func (s *Server) addHostEntry(host string) {
 		s.m.Lock()
 		s.hosts[host] = struct{}{}
 		s.m.Unlock()
-	} else if pat := compilePattern(host); pat != nil {
+	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		s.hostsRX = append(s.hostsRX, compilePattern(host))
+		s.hostsRX[rx.String()] = rx
+		s.m.Unlock()
+	}
+}
+
+func (s *Server) removeHostEntry(host string) {
+	if host == "" {
+		return
+	}
+	if host[len(host)-1] != '.' {
+		host += "."
+	}
+
+	if !strings.ContainsRune(host, '*') {
+		// Plain host string:
+		s.m.Lock()
+		delete(s.hosts, host)
+		s.m.Unlock()
+	} else if rx := compilePattern(host); rx != nil {
+		// Host pattern (regex):
+		s.m.Lock()
+		delete(s.hostsRX, rx.String())
 		s.m.Unlock()
 	}
 }
