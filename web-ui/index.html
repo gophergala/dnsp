@@ -108,7 +108,7 @@
       background-color: #F8FAFF;
     }
 
-    .close-button {
+    .delete-button {
       float: right;
       margin-right: 10px;
       color: #283047;
@@ -118,13 +118,102 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
   <script>
     $(document).ready(function() {
+      var setMode = function(mode) {
+        window.mode = mode;
+      }
+
+      var isBlacklist = function() {
+        return window.mode == "black";
+      }
+
+      // Default to blacklist
+      setMode("black");
+
       // Get the mode and set up the page
-      var mode;
       $.getJSON("/mode", function(data) {
-        mode = data.mode;
-        if (mode != "black") {
+        setMode(data.mode);
+
+        if (!isBlacklist()) {
           $(".whitelist .overlay").hide();
           $(".blacklist .overlay").show();
+        }
+      });
+
+      var addHostToList = function(host) {
+        var location = isBlacklist() ? '.blacklist' : '.whitelist';
+
+        $(location + " ul").append('<li><span class="url">' +
+          host + '</span><a href="javascript:"><div class="delete-button">x</div></a></li>');
+      }
+
+      countDiv = function() {
+        return $("#personal-" + (isBlacklist() ? 'black' : 'white') + "-count");
+      }
+
+      var updateCount = function(count) {
+        countDiv().text(count);
+      }
+
+      var incrementCount = function() {
+        var current = parseInt(countDiv().text());
+        countDiv().text(current + 1);
+      }
+
+      var decrementCount = function() {
+        var current = parseInt(countDiv().text());
+        countDiv().text(current - 1);
+      }
+
+      $.getJSON("/blacklist/public", function(data) {
+        if (data.count != undefined) {
+          $("#public-black-count").text(data.count);
+        }
+      });
+
+      $.getJSON("/list", function(data) {
+        updateCount(data.length)
+
+        for (var i = 0; i < data.length; i++) {
+          addHostToList(data[i]);
+        }
+      });
+
+      $(".add-button").click(function() {
+        var input = $(this).parent().find('.url-input');
+        var url = input.val();
+
+        if (url != "") {
+          $.ajax({
+              url: '/list/' + url,
+              type: 'PUT',
+              success: function(data) {
+                addHostToList(url);
+                incrementCount();
+                input.val("");
+              }
+          });
+        }
+      });
+
+      $('.url-input').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).parent().find(".add-button").click();
+        }
+      });
+
+      $('.host-list').on('click', '.delete-button', function() {
+        var grandparent = $(this).parent().parent();
+        var url = grandparent.find('.url').text();
+
+        if (url != "") {
+          $.ajax({
+              url: '/list/' + url,
+              type: 'DELETE',
+              success: function(data) {
+                grandparent.remove();
+                decrementCount();
+              }
+          });
         }
       });
     });
@@ -158,18 +247,10 @@
 
                 <div class="host-list">
                   <div class="adding-form">
-                    <input type="text" placeholder="xxx.com">
+                    <input type="text" class="url-input" placeholder="xxx.com">
                     <button class="add-button pure-button">Add</button>
                   </div>
                   <ul>
-                    <li>
-                      evil-site.net
-                      <a href="#"><div class="close-button">x</div></a>
-                    </li>
-                    <li>
-                      bad.com
-                      <a href="#"><div class="close-button">x</div></a>
-                    </li>
                   </ul>
                 </div>
 
@@ -211,18 +292,10 @@
 
             <div class="host-list">
               <div class="adding-form">
-                <input type="text" placeholder="good.com">
+                <input type="text" class="url-input" placeholder="good.com">
                 <button class="add-button pure-button">Add</button>
               </div>
               <ul>
-                <li>
-                  google.com
-                  <a href="#"><div class="close-button">x</div></a>
-                </li>
-                <li>
-                  github.com
-                  <a href="#"><div class="close-button">x</div></a>
-                </li>
               </ul>
             </div>
           </div>
