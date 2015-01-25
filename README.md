@@ -113,7 +113,7 @@ with a non-admin user (someone who is not in the `sudoers` group).
 
 Why, you ask, is a DNS proxy useful?
 
-* It is a simple solution for blocking websites (like AdBlock).
+* It is a simple solution for blocking websites (like [AdBlock]).
 * Does not require an HTTP proxy or a SOCKS proxy. Some apps don't like that.
 * Easy to set up for mobile devices. Run `dnsmasq` on your router or in any
   embedded Linux system, and configure your home router to use it as the DNS
@@ -128,3 +128,4 @@ Why, you ask, is a DNS proxy useful?
 
 
 [hosts-file.net]: http://hosts-file.net
+[AdBlock]: https://getadblock.com
