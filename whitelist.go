@@ -1,10 +1,6 @@
 package dnsp
 
-import (
-	"log"
-
-	"github.com/miekg/dns"
-)
+import "github.com/miekg/dns"
 
 const (
 	Unknown host = iota
@@ -43,7 +39,6 @@ func setHost(hosts map[string]host, host string, b host) {
 //
 // NOTE: "host" must end with a dot.
 func (s *Server) IsAllowed(host string) bool {
-	log.Printf("%s %#v", host, s.hosts)
 	b := s.hosts[host]
 	if s.white {
 		return b == White
@@ -61,10 +56,22 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 	return result
 }
 
-func loadWhitelist(h hosts, path string) error {
-	return nil
+func (s *Server) loadWhitelist(path string) error {
+	return readHosts(path, func(host string, rx bool) {
+		if !rx {
+			s.Whitelist(host)
+			return
+		}
+		// TODO: handle regex whitelists
+	})
 }
 
-func loadBlacklist(h hosts, path string) error {
-	return nil
+func (s *Server) loadBlacklist(path string) error {
+	return readHosts(path, func(host string, rx bool) {
+		if !rx {
+			s.Blacklist(host)
+			return
+		}
+		// TODO: hasdle regex blacklists
+	})
 }

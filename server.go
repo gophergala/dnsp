@@ -39,12 +39,12 @@ func NewServer(o Options) (*Server, error) {
 		hosts: hosts{},
 	}
 	if o.Whitelist != "" {
-		if err := loadWhitelist(s.hosts, o.Whitelist); err != nil {
+		if err := s.loadWhitelist(o.Whitelist); err != nil {
 			return nil, err
 		}
 	}
 	if o.Blacklist != "" {
-		if err := loadBlacklist(s.hosts, o.Blacklist); err != nil {
+		if err := s.loadBlacklist(o.Blacklist); err != nil {
 			return nil, err
 		}
 	}

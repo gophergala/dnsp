@@ -1,6 +1,8 @@
 package dnsp_test
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/gophergala/dnsp"
@@ -9,15 +11,21 @@ import (
 func TestIsAllowedWhite(t *testing.T) {
 	t.Parallel()
 
+	tmp, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmp.Name())
+
+	tmp.Write([]byte("github.com\n"))
+	tmp.Write([]byte("google.com\n"))
+
 	s, err := dnsp.NewServer(dnsp.Options{
-		Whitelist: "/etc/dnsp_allow.txt",
+		Whitelist: tmp.Name(),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	s.Whitelist("github.com")
-	s.Whitelist("google.com")
 
 	for host, ok := range map[string]bool{
 		"blocked.net.": false,
@@ -34,15 +42,21 @@ func TestIsAllowedWhite(t *testing.T) {
 func TestIsAllowedBlack(t *testing.T) {
 	t.Parallel()
 
+	tmp, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmp.Name())
+
+	tmp.Write([]byte("doubleclick.net\n"))
+	tmp.Write([]byte("porn.com\n"))
+
 	s, err := dnsp.NewServer(dnsp.Options{
-		Blacklist: "/etc/dnsp_block.txt",
+		Blacklist: tmp.Name(),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	s.Blacklist("doubleclick.net")
-	s.Blacklist("porn.com")
 
 	for host, ok := range map[string]bool{
 		"doubleclick.net.": false,
