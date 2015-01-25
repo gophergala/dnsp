@@ -83,7 +83,7 @@ func (s *Server) ListenAndServe() error {
 	return s.s.ListenAndServe()
 }
 
-// Shutdown stops the server, closing any kernel buffers.
+// Shutdown stops the server, closing its connection.
 func (s *Server) Shutdown() error {
 	return s.s.Shutdown()
 }
