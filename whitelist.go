@@ -55,10 +55,27 @@ func setHost(hosts map[string]host, host string, b host) {
 // NOTE: "host" must end with a dot.
 func (s *Server) IsAllowed(host string) bool {
 	b := s.hosts[host]
-	if s.white {
-		return b == White
+	if s.white { // check whitelists
+		if b == White {
+			return true
+		}
+		for _, rx := range s.rxWhitelist {
+			if rx.MatchString(host) {
+				return true
+			}
+		}
+		return false
 	}
-	return b != Black
+	// check blacklists
+	if b == Black {
+		return false
+	}
+	for _, rx := range s.rxBlacklist {
+		if rx.MatchString(host) {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Server) filter(qs []dns.Question) []dns.Question {
@@ -79,14 +96,18 @@ func (s *Server) loadBlacklist(path string) error {
 	return readHosts(path, s.Blacklist)
 }
 
-func appendPattern(rx []regexp.Regexp, pat string) []regexp.Regexp {
+func appendPattern(rx []*regexp.Regexp, pat string) []*regexp.Regexp {
+	if pat == "" {
+		return rx
+	}
+
 	pat = strings.Replace(pat, ".", `\.`, -1)
 	pat = strings.Replace(pat, "*", ".*", -1)
-	pat = "^" + pat + "$"
+	pat = "^" + pat + `\.$`
 	if r, err := regexp.Compile(pat); err != nil {
 		log.Printf("dnsp: could not compile %q: %s", pat, err)
 	} else {
-		rx = append(rx, *r)
+		rx = append(rx, r)
 	}
 	return rx
 }

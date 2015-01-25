@@ -22,8 +22,8 @@ type Server struct {
 	hosts hosts
 
 	// Regex based whitelist and blacklist.
-	rxWhitelist []regexp.Regexp
-	rxBlacklist []regexp.Regexp
+	rxWhitelist []*regexp.Regexp
+	rxBlacklist []*regexp.Regexp
 }
 
 // NewServer creates a new Server with the given options.
