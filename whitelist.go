@@ -17,35 +17,6 @@ type host uint8
 
 type hosts map[string]host
 
-// Whitelist whitelists a host or a pattern.
-func (s *Server) Whitelist(host string) {
-	if strings.ContainsRune(host, '*') {
-		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
-	} else {
-		setHost(s.hosts, host, white)
-	}
-}
-
-// Blacklist blacklists a host.
-// If rx is true, the given host is treated as a regular expression.
-func (s *Server) Blacklist(host string) {
-	if strings.ContainsRune(host, '*') {
-		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
-	} else {
-		setHost(s.hosts, host, black)
-	}
-}
-
-func setHost(hosts map[string]host, host string, b host) {
-	if host == "" {
-		return
-	}
-	if host[len(host)-1] != '.' {
-		host += "."
-	}
-	hosts[host] = b
-}
-
 // IsAllowed returns whether we are allowed to resolve this host.
 //
 // If the server is whitelisting, the rusilt will be true if the host is on the whitelist.
@@ -87,12 +58,40 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 	return result
 }
 
+// whitelist whitelists a host or a pattern.
+func (s *Server) whitelist(host string) {
+	if strings.ContainsRune(host, '*') {
+		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
+	} else {
+		setHost(s.hosts, host, white)
+	}
+}
+
+// blacklist blacklists a host.
+func (s *Server) blacklist(host string) {
+	if strings.ContainsRune(host, '*') {
+		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
+	} else {
+		setHost(s.hosts, host, black)
+	}
+}
+
+func setHost(hosts map[string]host, host string, b host) {
+	if host == "" {
+		return
+	}
+	if host[len(host)-1] != '.' {
+		host += "."
+	}
+	hosts[host] = b
+}
+
 func (s *Server) loadWhitelist(path string) error {
-	return readHosts(path, s.Whitelist)
+	return readHosts(path, s.whitelist)
 }
 
 func (s *Server) loadBlacklist(path string) error {
-	return readHosts(path, s.Blacklist)
+	return readHosts(path, s.blacklist)
 }
 
 func appendPattern(rx []*regexp.Regexp, pat string) []*regexp.Regexp {
