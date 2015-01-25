@@ -11,7 +11,7 @@ import (
 
 type hosts map[string]struct{}
 
-type hostsRX map[string]regexp.Regexp
+type hostsRX map[string]*regexp.Regexp
 
 // isAllowed returns whether we are allowed to resolve this host.
 //
@@ -78,7 +78,7 @@ func (s *Server) loadHostEntries() error {
 			hosts[host] = struct{}{}
 		} else if rx := compilePattern(host); rx != nil {
 			// Host pattern (regex):
-			hostsRX[rx.String()] = *rx
+			hostsRX[rx.String()] = rx
 		}
 	}); err != nil {
 		return err
@@ -138,7 +138,7 @@ func (s *Server) addHostEntry(host string) {
 	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		s.hostsRX[rx.String()] = *rx
+		s.hostsRX[rx.String()] = rx
 		s.m.Unlock()
 	}
 }
