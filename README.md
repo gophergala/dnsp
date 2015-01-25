@@ -1,5 +1,9 @@
 # `dnsp`: A DNS Proxy [![wercker status](https://app.wercker.com/status/f42156d5f4e863ebe8cf0c311bd7800a/s/master "wercker status")](https://app.wercker.com/project/bykey/f42156d5f4e863ebe8cf0c311bd7800a)
 
+> `dnsp` is a lightweight but powerful DNS server. Queries are blocked or
+> resolved based on a blacklist or a whitelist. Wildcard host patterns are
+> supported (e.g. `*.com`) as well as hosted, community-managed hosts files.
+
 
 ### Installation
 
