@@ -1,4 +1,3 @@
-// Package dnsp contains a simple DNS proxy.
 package dnsp
 
 import (
