@@ -113,6 +113,12 @@ func (s *Server) monitorHostEntries(poll time.Duration) {
 		if err := s.loadHostEntries(); err != nil {
 			log.Printf("dnsp: %s", err)
 		}
+
+		s.m.Lock()
+		s.hostsFile.mtime = mtime
+		s.hostsFile.size = size
+		hf = s.hostsFile
+		s.m.Unlock()
 	}
 }
 
