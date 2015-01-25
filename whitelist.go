@@ -1,6 +1,7 @@
 package dnsp
 
 import (
+	"crypto/md5"
 	"log"
 	"regexp"
 	"strings"
@@ -9,9 +10,11 @@ import (
 	"github.com/miekg/dns"
 )
 
-type hosts map[string]struct{}
+type hosts map[checksum]struct{}
 
-type hostsRX map[string]*regexp.Regexp
+type hostsRX map[checksum]*regexp.Regexp
+
+type checksum [md5.Size / 2]byte
 
 // isAllowed returns whether we are allowed to resolve this host.
 //
@@ -23,7 +26,7 @@ func (s *Server) isAllowed(host string) bool {
 	s.m.RLock()
 	defer s.m.RUnlock()
 
-	_, ok := s.hosts[host]
+	_, ok := s.hosts[hash(host)]
 
 	if s.white { // whitelist mode
 		if ok {
@@ -75,10 +78,10 @@ func (s *Server) loadHostEntries() error {
 
 		if !strings.ContainsRune(host, '*') {
 			// Plain host string:
-			hosts[host] = struct{}{}
+			hosts[hash(host)] = struct{}{}
 		} else if rx := compilePattern(host); rx != nil {
 			// Host pattern (regex):
-			hostsRX[rx.String()] = rx
+			hostsRX[hash(rx.String())] = rx
 		}
 	}); err != nil {
 		return err
@@ -133,12 +136,12 @@ func (s *Server) addHostEntry(host string) {
 	if !strings.ContainsRune(host, '*') {
 		// Plain host string:
 		s.m.Lock()
-		s.hosts[host] = struct{}{}
+		s.hosts[hash(host)] = struct{}{}
 		s.m.Unlock()
 	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		s.hostsRX[rx.String()] = rx
+		s.hostsRX[hash(rx.String())] = rx
 		s.m.Unlock()
 	}
 }
@@ -154,12 +157,12 @@ func (s *Server) removeHostEntry(host string) {
 	if !strings.ContainsRune(host, '*') {
 		// Plain host string:
 		s.m.Lock()
-		delete(s.hosts, host)
+		delete(s.hosts, hash(host))
 		s.m.Unlock()
 	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		delete(s.hostsRX, rx.String())
+		delete(s.hostsRX, hash(rx.String()))
 		s.m.Unlock()
 	}
 }
@@ -174,4 +177,18 @@ func compilePattern(pat string) *regexp.Regexp {
 		return nil
 	}
 	return rx
+}
+
+func hash(s string) checksum {
+	sum := md5.Sum([]byte(s))
+	return checksum{
+		sum[0] ^ sum[1],
+		sum[2] ^ sum[3],
+		sum[4] ^ sum[5],
+		sum[6] ^ sum[7],
+		sum[8] ^ sum[9],
+		sum[10] ^ sum[11],
+		sum[12] ^ sum[13],
+		sum[14] ^ sum[15],
+	}
 }
