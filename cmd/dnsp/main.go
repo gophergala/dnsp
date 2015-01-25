@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -54,6 +55,11 @@ func main() {
 			Usage:  "poll the whitelist or blacklist for updates",
 			EnvVar: "DNSP_POLL",
 		},
+		cli.StringFlag{
+			Name:   "http, t",
+			Usage:  "Port for local HTTP server, if wanted",
+			EnvVar: "DNSP_HTTP_PORT",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		resolve := []string{}
@@ -72,7 +78,12 @@ func main() {
 		if err != nil {
 			log.Fatalf("dnsp: %s", err)
 		}
-		dnsp.RunHTTPServer(":9000", s)
+
+		httpPort := c.String("http")
+		if httpPort != "" {
+			fmt.Printf("Running HTTP server on port %s\n", httpPort)
+			dnsp.RunHTTPServer(fmt.Sprintf("localhost:%s", httpPort), s)
+		}
 
 		catch(func(sig os.Signal) int {
 			os.Stderr.Write([]byte{'\r'})
