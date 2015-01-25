@@ -98,10 +98,10 @@ func (s *Server) addHostEntry(host string) {
 		s.m.Lock()
 		s.hosts[host] = struct{}{}
 		s.m.Unlock()
-	} else if pat := compilePattern(host); pat != nil {
+	} else if rx := compilePattern(host); rx != nil {
 		// Host pattern (regex):
 		s.m.Lock()
-		s.hostsRX = append(s.hostsRX, compilePattern(host))
+		s.hostsRX = append(s.hostsRX, rx)
 		s.m.Unlock()
 	}
 }
