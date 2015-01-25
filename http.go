@@ -2,10 +2,8 @@ package dnsp
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -15,20 +13,20 @@ type httpServer struct {
 }
 
 func (h *httpServer) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	index, err := os.Open("/Users/leavengood/go/src/github.com/gophergala/dnsp/web-ui/index.html")
-	if err == nil {
-		io.Copy(w, index)
-	} else {
+	data, err := Asset("web-ui/index.html")
+	if err != nil {
 		fmt.Fprintf(w, "Error: %v", err)
+	} else {
+		w.Write(data)
 	}
 }
 
 func (h *httpServer) logo(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	index, err := os.Open("/Users/leavengood/go/src/github.com/gophergala/dnsp/web-ui/logo.png")
-	if err == nil {
-		io.Copy(w, index)
-	} else {
+	data, err := Asset("web-ui/logo.png")
+	if err != nil {
 		fmt.Fprintf(w, "Error: %v", err)
+	} else {
+		w.Write(data)
 	}
 }
 
