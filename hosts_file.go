@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -49,7 +50,14 @@ func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 	}
 }
 
-func ReadHostFile(path string, fn HostsReaderFunc) error {
+func readHosts(path string, fn HostsReaderFunc) error {
+	if u, err := url.Parse(path); err == nil && u.Host != "" {
+		return readHostsURL(path, fn)
+	}
+	return readHostsFile(path, fn)
+}
+
+func readHostsFile(path string, fn HostsReaderFunc) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -59,7 +67,7 @@ func ReadHostFile(path string, fn HostsReaderFunc) error {
 	return nil
 }
 
-func ReadHostURL(url string, fn HostsReaderFunc) error {
+func readHostsURL(url string, fn HostsReaderFunc) error {
 	res, err := http.Get(url)
 	if err != nil {
 		return err
