@@ -1,4 +1,4 @@
-# `dnsp`: A DNS Proxy [![wercker status](https://app.wercker.com/status/f42156d5f4e863ebe8cf0c311bd7800a/s/master "wercker status")](https://app.wercker.com/project/bykey/f42156d5f4e863ebe8cf0c311bd7800a)
+# `dnsp`: A DNS Proxy [![wercker status](https://app.wercker.com/status/f42156d5f4e863ebe8cf0c311bd7800a/s/master "wercker status")](https://app.wercker.com/project/bykey/f42156d5f4e863ebe8cf0c311bd7800a) [![GoDoc](https://godoc.org/github.com/gophergala/dnsp?status.svg)](https://godoc.org/github.com/gophergala/dnsp)
 
 > `dnsp` is a lightweight but powerful DNS server. Queries are blocked or
 > resolved based on a blacklist or a whitelist. Wildcard host patterns are
