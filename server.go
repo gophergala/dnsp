@@ -2,7 +2,6 @@
 package dnsp
 
 import (
-	"log"
 	"regexp"
 
 	"github.com/miekg/dns"
@@ -63,12 +62,10 @@ func NewServer(o Options) (*Server, error) {
 
 		// Proxy Query:
 		for _, addr := range o.Resolve {
-			in, rtt, err := s.c.Exchange(r, addr)
+			in, _, err := s.c.Exchange(r, addr)
 			if err != nil {
-				log.Printf("dnsp: exchange failed: %s", err)
 				continue
 			}
-			log.Printf("dnsp: exchange successful, rtt=%s", rtt) // debug
 			w.WriteMsg(in)
 			return
 		}
