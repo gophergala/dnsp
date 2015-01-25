@@ -11,7 +11,7 @@ type Server struct {
 	c *dns.Client
 	s *dns.Server
 
-	// White, when set to true, causes to server to work in white-listing mode.
+	// White, when set to true, causes the server to work in white-listing mode.
 	// It will only resolve queries that have been white-listed.
 	//
 	// When set to false, it will resolve anything that is not blacklisted.

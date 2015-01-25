@@ -19,7 +19,7 @@ type hosts map[string]host
 
 // isAllowed returns whether we are allowed to resolve this host.
 //
-// If the server is whitelisting, the rusilt will be true if the host is on the whitelist.
+// If the server is whitelisting, the result will be true if the host is on the whitelist.
 // If the server is blacklisting, the result will be true if the host is NOT on the blacklist.
 //
 // NOTE: "host" must end with a dot.
@@ -67,7 +67,7 @@ func (s *Server) whitelist(host string) {
 	}
 }
 
-// blacklist blacklists a host.
+// blacklist blacklists a host or a pattern.
 func (s *Server) blacklist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
