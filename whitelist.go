@@ -64,12 +64,16 @@ func (s *Server) filter(qs []dns.Question) []dns.Question {
 
 // Load the host entries into separate structures and swap the existing entries.
 func (s *Server) loadHostEntries() error {
-	hosts := hosts{}
-	hostsRX := hostsRX{}
-
 	s.m.RLock()
 	path := s.hostsFile.path
 	s.m.RUnlock()
+
+	if path == "" {
+		return nil
+	}
+
+	hosts := hosts{}
+	hostsRX := hostsRX{}
 
 	if err := readHosts(path, func(host string) {
 		if host[len(host)-1] != '.' {
@@ -99,6 +103,10 @@ func (s *Server) monitorHostEntries(poll time.Duration) {
 	s.m.RLock()
 	hf := s.hostsFile
 	s.m.RUnlock()
+
+	if hf.path == "" {
+		return
+	}
 
 	for _ = range time.Tick(poll) {
 		log.Printf("dnsp: checking %q for updates…", hf.path)
