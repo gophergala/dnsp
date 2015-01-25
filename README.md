@@ -47,7 +47,7 @@ USAGE:
    dnsp [global options] command [command options] [arguments...]
 
 VERSION:
-   0.0.0
+   0.9.0
 
 COMMANDS:
    help, h      Shows a list of commands or help for one command
