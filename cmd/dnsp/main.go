@@ -11,17 +11,14 @@ import (
 	"github.com/gophergala/dnsp"
 )
 
-var (
-	Version = "0.0.0"
-
-	DefaultResolve = "8.8.4.4,8.8.8.8"
-)
+// DefaultResolve is the default list of nameservers for the `--resolve` flag.
+var DefaultResolve = "8.8.4.4,8.8.8.8"
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "dnsp"
 	app.Usage = "DNS proxy with whitelist/blacklist support"
-	app.Version = Version
+	app.Version = "0.0.0"
 	app.Author, app.Email = "", ""
 	app.Flags = []cli.Flag{
 		cli.StringFlag{

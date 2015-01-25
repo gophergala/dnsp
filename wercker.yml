@@ -32,4 +32,4 @@ build:
     - script:
         name: golint
         code: |
-          golint -min_confidence=1 .
+          golint .

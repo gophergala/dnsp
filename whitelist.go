@@ -8,6 +8,7 @@ import (
 	"github.com/miekg/dns"
 )
 
+// Host flags used in the whitelist/blacklist map.
 const (
 	Unknown host = iota
 	White        // whitelisted

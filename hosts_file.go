@@ -9,10 +9,12 @@ import (
 	"strings"
 )
 
+// HostsReader reads host entries from a file.
 type HostsReader struct {
 	Reader io.Reader
 }
 
+// NewHostsReader creates a HostReader from any io.Reader.
 func NewHostsReader(r io.Reader) *HostsReader {
 	return &HostsReader{Reader: r}
 }
@@ -20,6 +22,7 @@ func NewHostsReader(r io.Reader) *HostsReader {
 // HostsReaderFunc is a function that takes a hostname as its first argument.
 type HostsReaderFunc func(string)
 
+// ReadFunc reads the data line-by-line, feading each host entry to fn.
 func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 	scanner := bufio.NewScanner(h.Reader)
 	for scanner.Scan() {

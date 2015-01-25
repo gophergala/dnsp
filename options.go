@@ -19,6 +19,7 @@ type Options struct {
 	Blacklist string
 }
 
+// Validate verifies that the options are correct.
 func (o *Options) Validate() error {
 	if o.Net == "" {
 		o.Net = "udp"
