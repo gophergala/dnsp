@@ -72,6 +72,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("dnsp: %s", err)
 		}
+		dnsp.RunHTTPServer(":9000", s)
 
 		catch(func(sig os.Signal) int {
 			os.Stderr.Write([]byte{'\r'})
