@@ -62,10 +62,6 @@ func main() {
 			Whitelist: c.String("whitelist"),
 			Blacklist: c.String("blacklist"),
 		}
-		if err := o.Validate(); err != nil {
-			cli.ShowAppHelp(c)
-			log.Fatalf("dnsp: %s", err)
-		}
 		s, err := dnsp.NewServer(*o)
 		if err != nil {
 			log.Fatalf("dnsp: %s", err)

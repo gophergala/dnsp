@@ -28,6 +28,10 @@ type Server struct {
 
 // NewServer creates a new Server with the given options.
 func NewServer(o Options) (*Server, error) {
+	if err := o.validate(); err != nil {
+		return nil, err
+	}
+
 	s := Server{
 		c: &dns.Client{},
 		s: &dns.Server{

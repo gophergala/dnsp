@@ -19,8 +19,8 @@ type Options struct {
 	Blacklist string
 }
 
-// Validate verifies that the options are correct.
-func (o *Options) Validate() error {
+// validate verifies that the options are correct.
+func (o *Options) validate() error {
 	if o.Net == "" {
 		o.Net = "udp"
 	}
