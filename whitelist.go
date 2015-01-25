@@ -24,7 +24,9 @@ type hosts map[string]host
 //
 // NOTE: "host" must end with a dot.
 func (s *Server) isAllowed(host string) bool {
+	s.m.RLock()
 	b := s.hosts[host]
+	s.m.RUnlock()
 	if s.white { // check whitelists
 		if b == white {
 			return true
@@ -63,7 +65,7 @@ func (s *Server) whitelist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.rxWhitelist = appendPattern(s.rxWhitelist, host)
 	} else {
-		setHost(s.hosts, host, white)
+		s.setHost(host, white)
 	}
 }
 
@@ -72,18 +74,20 @@ func (s *Server) blacklist(host string) {
 	if strings.ContainsRune(host, '*') {
 		s.rxBlacklist = appendPattern(s.rxBlacklist, host)
 	} else {
-		setHost(s.hosts, host, black)
+		s.setHost(host, black)
 	}
 }
 
-func setHost(hosts map[string]host, host string, b host) {
+func (s *Server) setHost(host string, b host) {
 	if host == "" {
 		return
 	}
 	if host[len(host)-1] != '.' {
 		host += "."
 	}
-	hosts[host] = b
+	s.m.Lock()
+	s.hosts[host] = b
+	s.m.Unlock()
 }
 
 func (s *Server) loadWhitelist(path string) error {

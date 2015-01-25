@@ -1,7 +1,10 @@
 package dnsp
 
 import (
+	"log"
 	"regexp"
+	"sync"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -16,6 +19,9 @@ type Server struct {
 	//
 	// When set to false, it will resolve anything that is not blacklisted.
 	white bool
+
+	// Protect access to the hosts file with a mutex.
+	m sync.RWMutex
 
 	// Hosts is a combined whitelist/blacklist. It contains both whitelist and blacklist entries.
 	hosts hosts
@@ -44,10 +50,24 @@ func NewServer(o Options) (*Server, error) {
 		if err := s.loadWhitelist(o.Whitelist); err != nil {
 			return nil, err
 		}
+		if o.Poll != 0 {
+			go func() {
+				for _ = range time.Tick(o.Poll) {
+					log.Printf("dnsp: checking %q for updates…", o.Whitelist)
+				}
+			}()
+		}
 	}
 	if o.Blacklist != "" {
 		if err := s.loadBlacklist(o.Blacklist); err != nil {
 			return nil, err
+		}
+		if o.Poll != 0 {
+			go func() {
+				for _ = range time.Tick(o.Poll) {
+					log.Printf("dnsp: checking %q for updates…", o.Blacklist)
+				}
+			}()
 		}
 	}
 	s.s.Handler = dns.HandlerFunc(func(w dns.ResponseWriter, r *dns.Msg) {
