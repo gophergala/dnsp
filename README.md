@@ -5,8 +5,6 @@
 > supported (e.g. `*.com`) as well as hosted, community-managed hosts files.
 > Ideal for running on mobile devices or embedded systems.
 
-![dnsp](https://cloud.githubusercontent.com/assets/196617/5892473/cc29afe2-a4bf-11e4-9c6a-d1cc5169d62a.png)
-
 
 ### Installation
 
@@ -125,6 +123,8 @@ Why, you ask, is a DNS proxy useful?
   doesn't do any rewriting (it either blocks or proxies), you don't have to
   trust everyone having access to online hosts files not to redirect your
   bank's website to their own servers.
+
+![dnsp](https://cloud.githubusercontent.com/assets/196617/5892473/cc29afe2-a4bf-11e4-9c6a-d1cc5169d62a.png)
 
 
 [hosts-file.net]: http://hosts-file.net
