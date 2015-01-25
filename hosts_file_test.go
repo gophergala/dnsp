@@ -20,8 +20,7 @@ func TestHostReader(t *testing.T) {
 		"6.blocked.info",
 	}
 
-	(&dnsp.HostsReader{
-		Reader: bytes.NewBufferString(`
+	dnsp.ReadConfig(bytes.NewBufferString(`
 # Host names, one per line:
 foo.com
 bar.net  # with comment
@@ -35,7 +34,7 @@ bar.net  # with comment
 ::1 6.blocked.info
 
 1.2.3.4 not-blocked.com
-		`)}).ReadFunc(func(host string) {
+		`), func(host string) {
 		if i > len(exp) {
 			t.Errorf("unexpected host read: %q", host)
 			return

@@ -9,22 +9,8 @@ import (
 	"strings"
 )
 
-// HostsReader reads host entries from a file.
-type HostsReader struct {
-	Reader io.Reader
-}
-
-// NewHostsReader creates a HostReader from any io.Reader.
-func NewHostsReader(r io.Reader) *HostsReader {
-	return &HostsReader{Reader: r}
-}
-
-// HostsReaderFunc is a function that takes a hostname as its first argument.
-type HostsReaderFunc func(string)
-
-// ReadFunc reads the data line-by-line, feading each host entry to fn.
-func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
-	scanner := bufio.NewScanner(h.Reader)
+func readConfig(src io.Reader, fn func(string)) {
+	scanner := bufio.NewScanner(src)
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.SplitN(line, "#", 2)[0]
@@ -45,29 +31,29 @@ func (h *HostsReader) ReadFunc(fn HostsReaderFunc) {
 	}
 }
 
-func readHosts(path string, fn HostsReaderFunc) error {
+func readHosts(path string, fn func(string)) error {
 	if u, err := url.Parse(path); err == nil && u.Host != "" {
 		return readHostsURL(path, fn)
 	}
 	return readHostsFile(path, fn)
 }
 
-func readHostsFile(path string, fn HostsReaderFunc) error {
+func readHostsFile(path string, fn func(string)) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	NewHostsReader(file).ReadFunc(fn)
+	readConfig(file, fn)
 	file.Close()
 	return nil
 }
 
-func readHostsURL(url string, fn HostsReaderFunc) error {
+func readHostsURL(url string, fn func(string)) error {
 	res, err := http.Get(url)
 	if err != nil {
 		return err
 	}
-	NewHostsReader(res.Body).ReadFunc(fn)
+	readConfig(res.Body, fn)
 	res.Body.Close()
 	return nil
 }
