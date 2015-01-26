@@ -29,8 +29,8 @@ func (h *httpServer) logo(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	data, err := Asset("web-ui/logo.png")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	return
 	w.Write(data)
 }
 
