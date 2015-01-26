@@ -131,7 +131,7 @@
 
       // Get the mode and set up the page
       $.getJSON("/mode", function(data) {
-        setMode(data.mode);
+        setMode(data);
 
         if (!isBlacklist()) {
           $(".whitelist .overlay").hide();

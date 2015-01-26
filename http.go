@@ -39,7 +39,7 @@ func (h *httpServer) mode(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	if h.server.white {
 		mode = "white"
 	}
-	w.Write([]byte(`{"mode":"` + mode + `"}`))
+	w.Write([]byte(`"` + mode + `"`))
 }
 
 func (h *httpServer) publicListCount(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
