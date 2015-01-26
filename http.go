@@ -58,19 +58,14 @@ func (h *httpServer) list(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 func (h *httpServer) add(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-
 	h.server.addPrivateHostEntry(ps.ByName("url"))
 	w.WriteHeader(http.StatusCreated)
-
 	w.Write([]byte(`{"status":"OK"}`))
 }
 
 func (h *httpServer) remove(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-
 	h.server.removePrivateHostEntry(ps.ByName("url"))
-	w.WriteHeader(http.StatusNoContent)
-
 	w.Write([]byte(`{"status":"OK"}`))
 }
 
