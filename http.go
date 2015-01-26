@@ -2,7 +2,6 @@ package dnsp
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -63,7 +62,7 @@ func (h *httpServer) add(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	h.server.addPrivateHostEntry(ps.ByName("url"))
 	w.WriteHeader(http.StatusCreated)
 
-	fmt.Fprint(w, `{"status": "OK"}`)
+	w.Write([]byte(`{"status":"OK"}`))
 }
 
 func (h *httpServer) remove(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -72,7 +71,7 @@ func (h *httpServer) remove(w http.ResponseWriter, r *http.Request, ps httproute
 	h.server.removePrivateHostEntry(ps.ByName("url"))
 	w.WriteHeader(http.StatusNoContent)
 
-	fmt.Fprint(w, `{"status": "OK"}`)
+	w.Write([]byte(`{"status":"OK"}`))
 }
 
 func RunHTTPServer(host string, s *Server) {
