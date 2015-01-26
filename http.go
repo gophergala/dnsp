@@ -56,7 +56,7 @@ func (h *httpServer) add(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	w.Header().Set("Content-Type", "application/json")
 
 	h.server.addPrivateHostEntry(ps.ByName("url"))
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *httpServer) remove(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
