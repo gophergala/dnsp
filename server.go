@@ -1,6 +1,7 @@
 package dnsp
 
 import (
+	"regexp"
 	"sync"
 	"time"
 
@@ -25,6 +26,9 @@ type Server struct {
 	// Regex based whitelist and blacklist, depending on the value of `white`.
 	hostsRX hostsRX
 
+	privateHosts   map[string]struct{}
+	privateHostsRX map[string]*regexp.Regexp
+
 	// Information about the hosts file, used for polling:
 	hostsFile struct {
 		size  int64
@@ -45,8 +49,12 @@ func NewServer(o Options) (*Server, error) {
 			Net:  o.Net,
 			Addr: o.Bind,
 		},
-		white: o.Whitelist != "",
-		hosts: hosts{},
+		white:   o.Whitelist != "",
+		hosts:   hosts{},
+		hostsRX: hostsRX{},
+
+		privateHosts:   map[string]struct{}{},
+		privateHostsRX: map[string]*regexp.Regexp{},
 	}
 
 	hostListPath := o.Whitelist

@@ -54,6 +54,11 @@ func main() {
 			Usage:  "poll the whitelist or blacklist for updates",
 			EnvVar: "DNSP_POLL",
 		},
+		cli.StringFlag{
+			Name:   "http, t",
+			Usage:  "start a web-based UI on the given address (host:port, host or port)",
+			EnvVar: "DNSP_HTTP",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		resolve := []string{}
@@ -71,6 +76,10 @@ func main() {
 		s, err := dnsp.NewServer(*o)
 		if err != nil {
 			log.Fatalf("dnsp: %s", err)
+		}
+		if bind := c.String("http"); bind != "" {
+			log.Printf("dnsp: starting web interface on %s", bind)
+			go dnsp.RunHTTPServer(bind, s)
 		}
 
 		catch(func(sig os.Signal) int {

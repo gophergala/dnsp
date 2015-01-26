@@ -1,0 +1,303 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>dnsp Configuration</title>
+
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
+
+  <style>
+    body {
+      background-color: #D5D9E3;
+      color: #283047;
+    }
+
+    .logo {
+      height: 174px;
+      width: 100%;
+      background: url(/logo.png) center no-repeat;
+    }
+
+    .content {
+      margin: 0 auto;
+    }
+
+    .blacklist, .whitelist {
+      border-radius: 8px;
+      margin: 10px;
+      padding-bottom: 10px;
+      position: relative;
+    }
+    .blacklist {
+      background-color: #283047;
+    }
+    .whitelist {
+      background-color: #E8EAF0;
+    }
+    .blacklist h2, .whitelist h2 {
+      margin: 0;
+      padding: 10px;
+    }
+    .blacklist h2 {
+      color: #E8EAF0;
+    }
+    .overlay {
+      position: absolute;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #eee;
+      opacity: 0.8;
+      border-radius: 8px;
+    }
+
+    .list-group {
+      border: 2px solid #283047;
+      margin: 10px;
+      background-color: #E8EAF0;
+    }
+    .blacklist .list-group {
+      border: 2px solid #E8EAF0;
+    }
+    .list-group h3 {
+      background-color: #283047;
+      color: #F8FAFF;
+      margin-top: 0;
+      padding: 5px;
+      text-align: center;
+    }
+
+    .host-count {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .host-amount {
+      font-size: 3em;
+      color: #A3854B;
+      padding-bottom: 10px;
+    }
+
+    .adding-form {
+      padding: 0.5em;
+    }
+    .adding-form input[type="text"] {
+      width: 18em;
+      height: 1.4em;
+      padding: 0.3em;
+      margin-bottom: 10px;
+    }
+    .add-button {
+      color: white;
+      background-color: #283047;
+    }
+
+    .host-list ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    .host-list ul li {
+      padding: 0.8em 0.5em;
+      background-color: #F8FAFF;
+    }
+
+    .delete-button {
+      float: right;
+      margin-right: 10px;
+      color: #283047;
+    }
+  </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      var setMode = function(mode) {
+        window.mode = mode;
+      }
+
+      var isBlacklist = function() {
+        return window.mode == "black";
+      }
+
+      // Default to blacklist
+      setMode("black");
+
+      // Get the mode and set up the page
+      $.getJSON("/mode", function(data) {
+        setMode(data);
+
+        if (!isBlacklist()) {
+          $(".whitelist .overlay").hide();
+          $(".blacklist .overlay").show();
+        }
+      });
+
+      var addHostToList = function(host) {
+        var location = isBlacklist() ? '.blacklist' : '.whitelist';
+
+        $(location + " ul").append('<li><span class="url">' +
+          host + '</span><a href="javascript:"><div class="delete-button">x</div></a></li>');
+      }
+
+      countDiv = function() {
+        return $("#personal-" + (isBlacklist() ? 'black' : 'white') + "-count");
+      }
+
+      var updateCount = function(count) {
+        countDiv().text(count);
+      }
+
+      var incrementCount = function() {
+        var current = parseInt(countDiv().text());
+        countDiv().text(current + 1);
+      }
+
+      var decrementCount = function() {
+        var current = parseInt(countDiv().text());
+        countDiv().text(current - 1);
+      }
+
+      $.getJSON("/blacklist/public", function(data) {
+        if (data != undefined) {
+          $("#public-black-count").text(data);
+        }
+      });
+
+      $(".add-button").click(function() {
+        var input = $(this).parent().find('.url-input');
+        var url = input.val();
+
+        if (url != "") {
+          $.ajax({
+              url: '/list/' + url,
+              type: 'PUT',
+              success: function(data) {
+                addHostToList(url);
+                incrementCount();
+                input.val("");
+              }
+          });
+        }
+      });
+
+      $('.url-input').keypress(function (e) {
+        if (e.which == 13) {
+          $(this).parent().find(".add-button").click();
+        }
+      });
+
+      $('.host-list').on('click', '.delete-button', function() {
+        var grandparent = $(this).parent().parent();
+        var url = grandparent.find('.url').text();
+
+        if (url != "") {
+          $.ajax({
+              url: '/list/' + url,
+              type: 'DELETE',
+              success: function(data) {
+                grandparent.remove();
+                decrementCount();
+              }
+          });
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div class="logo">
+  </div>
+
+  <div class="content">
+    <div class="pure-g">
+      <div class="pure-u-1 pure-u-md-2-3">
+
+        <div class="blacklist">
+          <h2>Blacklist</h2>
+
+          <div class="pure-g">
+
+            <div class="pure-u-1 pure-u-md-1-2">
+
+              <div class="list-group">
+                <h3>Personal</h3>
+                <div class="list-group-content">
+                  <div class="host-count">
+                    <div id="personal-black-count" class="host-amount">0</div>
+                    HOSTS BLOCKED
+                  </div>
+                </div>
+                <hr>
+
+                <div class="host-list">
+                  <div class="adding-form">
+                    <input type="text" class="url-input" placeholder="xxx.com">
+                    <button class="add-button pure-button">Add</button>
+                  </div>
+                  <ul>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="pure-u-1 pure-u-md-1-2">
+
+              <div class="list-group">
+                <h3>Public</h3>
+                <div class="list-group-content">
+                  <div class="host-count">
+                    <div id="public-black-count" class="host-amount">0</div>
+                    HOSTS BLOCKED
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="overlay" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="pure-u-1 pure-u-md-1-3">
+
+        <div class="whitelist">
+          <h2>Whitelist</h2>
+
+          <div class="list-group">
+            <h3>Personal</h3>
+            <div class="list-group-content">
+              <div class="host-count">
+                <div id="personal-white-count"class="host-amount">0</div>
+                HOSTS ALLOWED
+              </div>
+            </div>
+            <hr>
+
+            <div class="host-list">
+              <div class="adding-form">
+                <input type="text" class="url-input" placeholder="good.com">
+                <button class="add-button pure-button">Add</button>
+              </div>
+              <ul>
+              </ul>
+            </div>
+          </div>
+
+          <div class="overlay"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

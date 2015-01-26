@@ -27,12 +27,20 @@ func (s *Server) isAllowed(host string) bool {
 	defer s.m.RUnlock()
 
 	_, ok := s.hosts[hash(host)]
+	if !ok {
+		_, ok = s.privateHosts[host]
+	}
 
 	if s.white { // whitelist mode
 		if ok {
 			return true
 		}
 		for _, rx := range s.hostsRX {
+			if rx.MatchString(host) {
+				return true
+			}
+		}
+		for _, rx := range s.privateHostsRX {
 			if rx.MatchString(host) {
 				return true
 			}
@@ -45,6 +53,11 @@ func (s *Server) isAllowed(host string) bool {
 		return false
 	}
 	for _, rx := range s.hostsRX {
+		if rx.MatchString(host) {
+			return false
+		}
+	}
+	for _, rx := range s.privateHostsRX {
 		if rx.MatchString(host) {
 			return false
 		}
@@ -173,6 +186,13 @@ func (s *Server) removeHostEntry(host string) {
 		delete(s.hostsRX, hash(rx.String()))
 		s.m.Unlock()
 	}
+}
+
+func (s *Server) publicEntriesCount() int {
+	s.m.Lock()
+	n := len(s.hosts) + len(s.hostsRX)
+	s.m.Unlock()
+	return n
 }
 
 func compilePattern(pat string) *regexp.Regexp {

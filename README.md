@@ -69,6 +69,7 @@ GLOBAL OPTIONS:
    --whitelist, -w          URL or path to file containing whitelisted hosts [$DNSP_WHITELIST]
    --blacklist, -b          URL or path to file containing blacklisted hosts [$DNSP_BLACKLIST]
    --poll, -p "0"           poll the whitelist or blacklist for updates [$DNSP_POLL]
+   --http, -t               start a web-based UI on the given address (host:port, host or port) [$DNSP_HTTP]
    --help, -h               show help
    --version, -v            print the version
 ```
