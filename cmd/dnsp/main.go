@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -79,13 +78,8 @@ func main() {
 			log.Fatalf("dnsp: %s", err)
 		}
 		if bind := c.String("http"); bind != "" {
+			log.Printf("dnsp: starting web interface on %s", bind)
 			go dnsp.RunHTTPServer(bind, s)
-		}
-
-		httpPort := c.String("http")
-		if httpPort != "" {
-			fmt.Printf("Running HTTP server on port %s\n", httpPort)
-			dnsp.RunHTTPServer(fmt.Sprintf("localhost:%s", httpPort), s)
 		}
 
 		catch(func(sig os.Signal) int {
