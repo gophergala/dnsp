@@ -18,7 +18,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "dnsp"
 	app.Usage = "DNS proxy with whitelist/blacklist support"
-	app.Version = "0.9.1"
+	app.Version = "0.9.2"
 	app.Author, app.Email = "", ""
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
