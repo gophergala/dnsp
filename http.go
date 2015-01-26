@@ -82,6 +82,8 @@ func RunHTTPServer(host string, s *Server) {
 	// Gets the count for the public blacklist
 	router.GET("/blacklist/public", h.publicListCount)
 
+	// Gets the current list
+	router.GET("/list", h.list)
 	// Adds a new URL to the list
 	router.PUT("/list/:url", h.add)
 	// Removes a URL from the list
