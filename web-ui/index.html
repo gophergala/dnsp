@@ -165,8 +165,8 @@
       }
 
       $.getJSON("/blacklist/public", function(data) {
-        if (data.count != undefined) {
-          $("#public-black-count").text(data.count);
+        if (data != undefined) {
+          $("#public-black-count").text(data);
         }
       });
 
