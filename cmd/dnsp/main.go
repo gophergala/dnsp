@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -55,9 +56,9 @@ func main() {
 			EnvVar: "DNSP_POLL",
 		},
 		cli.StringFlag{
-			Name:   "webui",
+			Name:   "http, t",
 			Usage:  "start a web-based UI on the given address (host:port, host or port)",
-			EnvVar: "DNSP_WEBUI",
+			EnvVar: "DNSP_HTTP",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -77,8 +78,14 @@ func main() {
 		if err != nil {
 			log.Fatalf("dnsp: %s", err)
 		}
-		if bind := c.String("webui"); bind != "" {
+		if bind := c.String("http"); bind != "" {
 			go dnsp.RunHTTPServer(bind, s)
+		}
+
+		httpPort := c.String("http")
+		if httpPort != "" {
+			fmt.Printf("Running HTTP server on port %s\n", httpPort)
+			dnsp.RunHTTPServer(fmt.Sprintf("localhost:%s", httpPort), s)
 		}
 
 		catch(func(sig os.Signal) int {
