@@ -1,6 +1,7 @@
 package dnsp
 
 import (
+	"regexp"
 	"sync"
 	"time"
 
@@ -24,6 +25,9 @@ type Server struct {
 	hosts hosts
 	// Regex based whitelist and blacklist, depending on the value of `white`.
 	hostsRX hostsRX
+
+	privateHosts   map[string]struct{}
+	privateHostsRX map[string]*regexp.Regexp
 
 	// Information about the hosts file, used for polling:
 	hostsFile struct {
