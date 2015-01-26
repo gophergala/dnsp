@@ -44,7 +44,11 @@ func (h *httpServer) mode(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 func (h *httpServer) publicListCount(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(h.server.publicEntriesCount())
+	n := 0
+	if !h.server.white {
+		n = h.server.publicEntriesCount()
+	}
+	json.NewEncoder(w).Encode(n)
 }
 
 func (h *httpServer) list(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
