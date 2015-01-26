@@ -49,8 +49,12 @@ func NewServer(o Options) (*Server, error) {
 			Net:  o.Net,
 			Addr: o.Bind,
 		},
-		white: o.Whitelist != "",
-		hosts: hosts{},
+		white:   o.Whitelist != "",
+		hosts:   hosts{},
+		hostsRX: hostsRX{},
+
+		privateHosts:   map[string]struct{}{},
+		privateHostsRX: map[string]*regexp.Regexp{},
 	}
 
 	hostListPath := o.Whitelist
