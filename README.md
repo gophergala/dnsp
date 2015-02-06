@@ -14,7 +14,7 @@
 ### Installation
 
 ```sh
-$ go get -u github.com/gophergala/dnsp
+$ go get -u github.com/gophergala/dnsp/...
 ```
 
 ### Example Usage
