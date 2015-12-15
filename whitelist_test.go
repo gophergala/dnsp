@@ -23,6 +23,7 @@ func TestIsAllowedWhite(t *testing.T) {
 
 	s, err := dnsp.NewServer(dnsp.Options{
 		Whitelist: tmp.Name(),
+		BlockedIP: "192.168.1.117",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +60,7 @@ func TestIsAllowedBlack(t *testing.T) {
 
 	s, err := dnsp.NewServer(dnsp.Options{
 		Blacklist: tmp.Name(),
+		BlockedIP: "192.168.1.117",
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -15,14 +15,16 @@ func TestValidate(t *testing.T) {
 		{
 			// invalid Net
 			dnsp.Options{
-				Net: "something invalid",
+				Net:       "something invalid",
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
 		{
 			// valid bind
 			dnsp.Options{
-				Bind: "example.com:dns",
+				Bind:      "example.com:dns",
+				BlockedIP: "192.168.1.117",
 			},
 			false,
 		},
@@ -32,6 +34,7 @@ func TestValidate(t *testing.T) {
 				Resolve: []string{
 					"something.com",
 				},
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
@@ -41,13 +44,15 @@ func TestValidate(t *testing.T) {
 				Resolve: []string{
 					"0.0.0.0:53",
 				},
+				BlockedIP: "192.168.1.117",
 			},
 			false,
 		},
 		{
 			// Poll too short
 			dnsp.Options{
-				Poll: time.Millisecond * 900,
+				Poll:      time.Millisecond * 900,
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
@@ -56,6 +61,7 @@ func TestValidate(t *testing.T) {
 			dnsp.Options{
 				Whitelist: "wikipedia.com",
 				Blacklist: "badsite.com",
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
@@ -63,6 +69,7 @@ func TestValidate(t *testing.T) {
 			// invalid whitelist
 			dnsp.Options{
 				Whitelist: "somethinginvalid",
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
@@ -70,6 +77,7 @@ func TestValidate(t *testing.T) {
 			// invalid blacklist
 			dnsp.Options{
 				Blacklist: "somethinginvalid",
+				BlockedIP: "192.168.1.117",
 			},
 			true,
 		},
@@ -90,7 +98,7 @@ func TestValidate(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		err := tt.inputOptions.validate()
+		err := tt.inputOptions.Validate()
 
 		// if we expect an error and there isn't one
 		if tt.wantErr && err == nil {
