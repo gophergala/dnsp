@@ -104,7 +104,7 @@ func NewServer(o Options) (*Server, error) {
 						Ttl:    600,
 					}
 
-					a := &dns.A{rr_header, IPv4}
+					a := &dns.A{Hdr: rr_header, A: IPv4}
 					m.Answer = append(m.Answer, a)
 
 				case _IP6Query:
@@ -114,7 +114,7 @@ func NewServer(o Options) (*Server, error) {
 						Class:  dns.ClassINET,
 						Ttl:    600,
 					}
-					aaaa := &dns.AAAA{rr_header, IPv16}
+					aaaa := &dns.AAAA{Hdr: rr_header, AAAA: IPv16}
 					m.Answer = append(m.Answer, aaaa)
 				}
 
