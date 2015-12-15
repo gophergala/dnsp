@@ -73,10 +73,24 @@ func TestValidate(t *testing.T) {
 			},
 			true,
 		},
+		{
+			// valid blockedip
+			dnsp.Options{
+				BlockedIP: "192.168.1.117",
+			},
+			false,
+		},
+		{
+			// invalid blockedip
+			dnsp.Options{
+				BlockedIP: "somethinginvalid",
+			},
+			true,
+		},
 	}
 
 	for _, tt := range testCases {
-		err := tt.inputOptions.Validate()
+		err := tt.inputOptions.validate()
 
 		// if we expect an error and there isn't one
 		if tt.wantErr && err == nil {

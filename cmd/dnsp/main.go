@@ -59,6 +59,12 @@ func main() {
 			Usage:  "start a web-based UI on the given address (host:port, host or port)",
 			EnvVar: "DNSP_HTTP",
 		},
+		cli.StringFlag{
+			Name:   "blockedip, i",
+			Value:  "192.168.1.1",
+			Usage:  "resolve blocked domains to this IPv4 IP address (e.g. 192.168.1.x)",
+			EnvVar: "DNSP_BLOCKEDIP",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		resolve := []string{}
@@ -72,6 +78,7 @@ func main() {
 			Poll:      c.Duration("poll"),
 			Whitelist: c.String("whitelist"),
 			Blacklist: c.String("blacklist"),
+			BlockedIP: c.String("blockedip"),
 		}
 		s, err := dnsp.NewServer(*o)
 		if err != nil {

@@ -65,6 +65,9 @@ func NewServer(o Options) (*Server, error) {
 		privateHostsRX: map[string]*regexp.Regexp{},
 	}
 
+	IPv4 := net.ParseIP(o.BlockedIP).To4()
+	IPv16 := net.ParseIP(o.BlockedIP).To16()
+
 	hostListPath := o.Whitelist
 	if hostListPath == "" {
 		hostListPath = o.Blacklist
@@ -100,7 +103,7 @@ func NewServer(o Options) (*Server, error) {
 					Ttl:    600,
 				}
 
-				a := &dns.A{rr_header, net.ParseIP("192.168.1.117").To4()}
+				a := &dns.A{rr_header, IPv4}
 				m.Answer = append(m.Answer, a)
 
 			case _IP6Query:
@@ -110,7 +113,7 @@ func NewServer(o Options) (*Server, error) {
 					Class:  dns.ClassINET,
 					Ttl:    600,
 				}
-				aaaa := &dns.AAAA{rr_header, net.ParseIP("192.168.1.117").To16()}
+				aaaa := &dns.AAAA{rr_header, IPv16}
 				m.Answer = append(m.Answer, aaaa)
 			}
 
