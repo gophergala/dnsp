@@ -1,6 +1,8 @@
 package dnsp
 
 import (
+	"log"
+	"net"
 	"regexp"
 	"sync"
 	"time"
@@ -36,6 +38,12 @@ type Server struct {
 		mtime time.Time
 	}
 }
+
+const (
+	notIPQuery = 0
+	_IP4Query  = 4
+	_IP6Query  = 6
+)
 
 // NewServer creates a new Server with the given options.
 func NewServer(o Options) (*Server, error) {
@@ -75,9 +83,39 @@ func NewServer(o Options) (*Server, error) {
 			return
 		}
 
+		q := r.Question[0]
+
 		// Filter Questions:
 		if r.Question = s.filter(r.Question); len(r.Question) == 0 {
-			w.WriteMsg(r)
+			IPQuery := s.isIPQuery(q)
+			m := new(dns.Msg)
+			m.SetReply(r)
+
+			switch IPQuery {
+			case _IP4Query:
+				rr_header := dns.RR_Header{
+					Name:   q.Name,
+					Rrtype: dns.TypeA,
+					Class:  dns.ClassINET,
+					Ttl:    600,
+				}
+
+				a := &dns.A{rr_header, net.ParseIP("192.168.1.117").To4()}
+				m.Answer = append(m.Answer, a)
+
+			case _IP6Query:
+				rr_header := dns.RR_Header{
+					Name:   q.Name,
+					Rrtype: dns.TypeAAAA,
+					Class:  dns.ClassINET,
+					Ttl:    600,
+				}
+				aaaa := &dns.AAAA{rr_header, net.ParseIP("192.168.1.117").To16()}
+				m.Answer = append(m.Answer, aaaa)
+			}
+
+			log.Printf("blocked: %s", q.Name)
+			w.WriteMsg(m)
 			return
 		}
 
@@ -93,6 +131,21 @@ func NewServer(o Options) (*Server, error) {
 		dns.HandleFailed(w, r)
 	})
 	return &s, nil
+}
+
+func (h *Server) isIPQuery(q dns.Question) int {
+	if q.Qclass != dns.ClassINET {
+		return notIPQuery
+	}
+
+	switch q.Qtype {
+	case dns.TypeA:
+		return _IP4Query
+	case dns.TypeAAAA:
+		return _IP6Query
+	default:
+		return notIPQuery
+	}
 }
 
 // ListenAndServe runs the server
