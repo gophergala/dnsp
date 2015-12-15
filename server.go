@@ -86,40 +86,42 @@ func NewServer(o Options) (*Server, error) {
 			return
 		}
 
-		q := r.Question[0]
+		if len(r.Question) > 0 {
+			q := r.Question[0]
 
-		// Filter Questions:
-		if r.Question = s.filter(r.Question); len(r.Question) == 0 {
-			IPQuery := s.isIPQuery(q)
-			m := new(dns.Msg)
-			m.SetReply(r)
+			// Filter Questions:
+			if r.Question = s.filter(r.Question); len(r.Question) == 0 {
+				IPQuery := s.isIPQuery(q)
+				m := new(dns.Msg)
+				m.SetReply(r)
 
-			switch IPQuery {
-			case _IP4Query:
-				rr_header := dns.RR_Header{
-					Name:   q.Name,
-					Rrtype: dns.TypeA,
-					Class:  dns.ClassINET,
-					Ttl:    600,
+				switch IPQuery {
+				case _IP4Query:
+					rr_header := dns.RR_Header{
+						Name:   q.Name,
+						Rrtype: dns.TypeA,
+						Class:  dns.ClassINET,
+						Ttl:    600,
+					}
+
+					a := &dns.A{rr_header, IPv4}
+					m.Answer = append(m.Answer, a)
+
+				case _IP6Query:
+					rr_header := dns.RR_Header{
+						Name:   q.Name,
+						Rrtype: dns.TypeAAAA,
+						Class:  dns.ClassINET,
+						Ttl:    600,
+					}
+					aaaa := &dns.AAAA{rr_header, IPv16}
+					m.Answer = append(m.Answer, aaaa)
 				}
 
-				a := &dns.A{rr_header, IPv4}
-				m.Answer = append(m.Answer, a)
-
-			case _IP6Query:
-				rr_header := dns.RR_Header{
-					Name:   q.Name,
-					Rrtype: dns.TypeAAAA,
-					Class:  dns.ClassINET,
-					Ttl:    600,
-				}
-				aaaa := &dns.AAAA{rr_header, IPv16}
-				m.Answer = append(m.Answer, aaaa)
+				log.Printf("blocked: %s", q.Name)
+				w.WriteMsg(m)
+				return
 			}
-
-			log.Printf("blocked: %s", q.Name)
-			w.WriteMsg(m)
-			return
 		}
 
 		// Proxy Query:
