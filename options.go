@@ -19,6 +19,8 @@ type Options struct {
 
 	Whitelist string
 	Blacklist string
+
+	BlockedIP string
 }
 
 // validate verifies that the options are correct.
@@ -69,6 +71,12 @@ func (o *Options) validate() error {
 		if o.Blacklist, err = pathOrURL(o.Blacklist); err != nil {
 			return err
 		}
+	}
+
+	if o.BlockedIP == "" {
+		return errors.New("--blockedip is a must.")
+	} else if net.ParseIP(o.BlockedIP) == nil {
+		return errors.New("--blockedip must be a valid IP")
 	}
 
 	return nil
