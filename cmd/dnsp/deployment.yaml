@@ -5,6 +5,7 @@ metadata:
   labels:
     app: dnsp-home
 spec:
+  revisionHistoryLimit: 2
   replicas: 2
   selector:
     matchLabels:
@@ -34,7 +35,7 @@ spec:
             - "nslookup"
             - "google.com."
             - "127.0.0.1"
-          initialDelaySeconds: 10
+          initialDelaySeconds: 5
           periodSeconds: 1
         livenessProbe:
           exec:
@@ -42,6 +43,6 @@ spec:
             - "nslookup"
             - "google.com."
             - "127.0.0.1"
-          initialDelaySeconds: 360
+          initialDelaySeconds: 120
           periodSeconds: 1
       terminationGracePeriodSeconds: 15
