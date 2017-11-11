@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: dnsp-home
@@ -21,14 +21,15 @@ spec:
         app: dnsp-home
       name: dnsp-home
     spec:
+      terminationGracePeriodSeconds: 15
       containers:
       - args:
-        - "--blacklist=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-        - "--poll=72h"
-        - "--resolve=8.8.8.8,4.4.4.4"
+        - --blacklist=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        - --poll=72h
+        - --resolve=8.8.8.8,4.4.4.4
+        name: "dnsp-home"
         image: "docker.io/integrii/dnsp"
         imagePullPolicy: Always
-        name: "dnsp-home"
         resources:
           requests:
             memory: "50Mi"
@@ -53,4 +54,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 1
-      terminationGracePeriodSeconds: 15
+        ports:
+          - containerPort: 53
+            name: dns-server
+            protocol: UDP

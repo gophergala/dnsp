@@ -8,7 +8,7 @@ spec:
   ports:
   - port: 53
     protocol: UDP
-    targetPort: 53
+    targetPort: dns-server
   selector:
     app: dnsp-home
   type: LoadBalancer
