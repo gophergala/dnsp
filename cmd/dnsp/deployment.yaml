@@ -5,14 +5,14 @@ metadata:
   labels:
     app: dnsp-home
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 2
   selector:
     matchLabels:
       app: dnsp-home
   strategy:
     rollingUpdate:
-      maxSurge: 2
+      maxSurge: 1
       maxUnavailable: 0
     type: RollingUpdate
   template:
@@ -36,7 +36,9 @@ spec:
             - "google.com."
             - "127.0.0.1"
           initialDelaySeconds: 5
-          periodSeconds: 1
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 1
         livenessProbe:
           exec:
             command:
@@ -44,5 +46,7 @@ spec:
             - "google.com."
             - "127.0.0.1"
           initialDelaySeconds: 120
-          periodSeconds: 1
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 1
       terminationGracePeriodSeconds: 15
