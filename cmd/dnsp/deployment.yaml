@@ -29,6 +29,10 @@ spec:
         image: "docker.io/integrii/dnsp"
         imagePullPolicy: Always
         name: "dnsp-home"
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "100m"
         readinessProbe:
           exec:
             command:
